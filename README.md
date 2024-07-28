@@ -44,3 +44,6 @@ Phrugal will probably never:
 
 * attempt to modify the actual look of the input image, e.g. do a black and white conversion or
   apply some filter. There are better tools for that.
+
+## References and acknowledgements
+Phrugal makes heavy use of [Pillow](https://pillow.readthedocs.io/en/stable/).
