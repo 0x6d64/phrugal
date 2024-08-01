@@ -1,10 +1,7 @@
 from dataclasses import dataclass
-from operator import add
 from pathlib import Path
 
-from collections import namedtuple
-from typing import Tuple, Any
-from io import BytesIO
+from typing import Optional
 
 from PIL import Image, ImageDraw, ImageFont, ExifTags
 import exifread
@@ -67,7 +64,7 @@ class PhrugalImage:
         return t
 
     def _get_font(self, decoration: BorderDecoration) -> ImageFont.FreeTypeFont:
-        font_size = decoration.get_font_size(self.image_dims)
+        font_size = int(decoration.get_font_size(self.image_dims))
         if decoration.font is None:
             font = ImageFont.truetype("arial.ttf", size=font_size)
         else:
@@ -87,15 +84,15 @@ class PhrugalExifData:
         with open(image_path, "rb") as fp:
             self.exif_data = exifread.process_file(fp)
 
-    def get_focal_len(self) -> str:
-        raw = self.exif_data.get("EXIF FocalLength", None)  # type: None | IfdTag
+    def get_focal_len(self) -> str | None:
+        raw = self.exif_data.get("EXIF FocalLength", None)  # type: Optional[IfdTag]
         if raw is None:
             return None
         else:
             value = float(raw.values[0])
             return f"{value:.1f}mm"
 
-    def get_aperture(self) -> str:
+    def get_aperture(self) -> str | None:
         raw = self.exif_data.get("EXIF ApertureValue", None)
         if raw is None:
             return None
@@ -103,7 +100,7 @@ class PhrugalExifData:
             value = float(raw.values[0])
             return f"f/{value:.1f}"
 
-    def get_shutter_speed(self) -> str:
+    def get_shutter_speed(self) -> str | None:
         raw = self.exif_data.get("EXIF ShutterSpeedValue", None)
         if raw is None:
             return None
@@ -126,7 +123,7 @@ class PhrugalExifData:
         y = round(x / (10 * order_of_magnitude))
         return y * 10 ** order_of_magnitude
 
-    def get_iso(self) -> str:
+    def get_iso(self) -> str | None:
         raw = self.exif_data.get("EXIF ISOSpeedRatings", None)
         if raw is None:
             return None
