@@ -6,7 +6,7 @@ from geopy.geocoders import Nominatim
 
 import phrugal
 
-USER_AGENT = f"phrugal/{phrugal.__version__}"
+USER_AGENT = f"phrugal/{phrugal.__version__} (+https://github.com/0x6d64/phrugal)"
 
 
 def get_geocoder() -> Nominatim:

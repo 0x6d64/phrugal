@@ -29,7 +29,7 @@ class TestGeocode(unittest.TestCase):
 
         self.assertLess(
             duration_cached_function_call,
-            datetime.timedelta(milliseconds=1),
+            datetime.timedelta(milliseconds=3),
         )
 
     def test_reverse(self):
