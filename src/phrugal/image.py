@@ -1,16 +1,52 @@
 from dataclasses import dataclass
 from pathlib import Path
-
 from typing import Optional
 
-from PIL import Image, ImageDraw, ImageFont, ExifTags
 import exifread
+from PIL import Image, ImageDraw, ImageFont
 from exifread.classes import IfdTag
 
-from . import PixelTuple, ColorTuple
+from . import PixelTuple
 from .border_decoration import BorderDecoration
 
 MM_PER_INCH = 25.4
+
+
+def _calc_common_values() -> list[int]:
+    base_values = {
+        2500,
+        2000,
+        1600,
+        1250,
+        1000,
+        800,
+        640,
+        500,
+        400,
+        320,
+        250,
+        200,
+        160,
+        125,
+        100,
+        80,
+        60,
+        50,
+        40,
+        30,
+        25,
+        20,
+        15,
+        13,
+        10,
+        8,
+        6,
+        5,
+        4,
+        2,
+    }
+    retval = sorted([float(x) for x in base_values])
+    return retval
 
 
 @dataclass
@@ -25,7 +61,11 @@ class PhrugalImage:
         return self._image.size
 
     def get_decorated_image(self, decoration: BorderDecoration) -> Image:
-        new_img = Image.new("RGB", decoration.get_size_with_border(self.image_dims), color=decoration.background_color)
+        new_img = Image.new(
+            "RGB",
+            decoration.get_size_with_border(self.image_dims),
+            color=decoration.background_color,
+        )
         new_img.paste(self._image, decoration.get_border_size(self.image_dims))
         self._draw_text(new_img, decoration)
 
@@ -42,7 +82,7 @@ class PhrugalImage:
         )
         text_origin = (
             text_offset_pixel + border_x,
-            text_offset_pixel + self.image_dims[1] + border_y
+            text_offset_pixel + self.image_dims[1] + border_y,
         )
         draw.text(text_origin, text, fill=decoration.text_color, font=font)
 
@@ -80,9 +120,17 @@ class PhrugalImage:
 
 
 class PhrugalExifData:
+    COMMON_DIVIDEND_VALUES = _calc_common_values()
+    THRESHOLD_COMMON_DISPLAY = 0.08
+    THRESHOLD_FRACTION_DISPLAY = 0.55
+
     def __init__(self, image_path: Path | str) -> None:
+        self._image_path = image_path
         with open(image_path, "rb") as fp:
             self.exif_data = exifread.process_file(fp)
+
+    def __repr__(self):
+        return Path(self._image_path).name
 
     def get_focal_len(self) -> str | None:
         raw = self.exif_data.get("EXIF FocalLength", None)  # type: Optional[IfdTag]
@@ -107,21 +155,26 @@ class PhrugalExifData:
         else:
             apex = raw.values[0]
             exposure_time = 2 ** (-apex)
-            exposure_dividend = 2 ** apex
-            if exposure_time < 1:
-                if exposure_dividend > 100:
-                    exposure_dividend = self._kill_precision(exposure_dividend, 1)
-                elif exposure_dividend > 1000:
-                    exposure_dividend = self._kill_precision(exposure_dividend, 2)
+            exposure_dividend = 2**apex
+            if exposure_time < self.THRESHOLD_FRACTION_DISPLAY:
+                exposure_dividend = self.round_shutter_to_common_value(
+                    float(exposure_dividend)
+                )
                 div_rounded = int(exposure_dividend)
                 return f"1/{div_rounded}s"
             else:
                 return f"{exposure_time:.1f}s"
 
-    @staticmethod
-    def _kill_precision(x: int, order_of_magnitude: int) -> int:
-        y = round(x / (10 * order_of_magnitude))
-        return y * 10 ** order_of_magnitude
+    def round_shutter_to_common_value(self, dividend: float) -> float:
+        closest_common_value = min(
+            self.COMMON_DIVIDEND_VALUES, key=lambda a: abs(a - dividend)
+        )
+        deviation_from_closest = abs(dividend - closest_common_value) / dividend
+
+        if deviation_from_closest > self.THRESHOLD_COMMON_DISPLAY:
+            return dividend
+        else:
+            return closest_common_value
 
     def get_iso(self) -> str | None:
         raw = self.exif_data.get("EXIF ISOSpeedRatings", None)
