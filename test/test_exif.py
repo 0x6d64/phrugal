@@ -1,0 +1,108 @@
+import unittest
+from pathlib import Path
+
+import phrugal.exif
+import phrugal.image
+
+
+class TestPhrugal(unittest.TestCase):
+    ENABLE_PRINTING = False
+
+    @classmethod
+    def setUpClass(cls):
+        cls.test_image_source = Path("./img/exif-data-testdata").glob("**/*.jpg")
+        cls.test_instances = [
+            phrugal.exif.PhrugalExifData(x) for x in cls.test_image_source
+        ]
+
+    def _get_specific_img_instance(self, file_substring):
+        return next(
+            (x for x in self.test_instances if file_substring in x.image_path.name)
+        )
+
+    def test_get_focal_len(self):
+        input_and_expected = [
+            ("0027", "24mm"),
+            ("0095", "0mm"),
+        ]
+        for img, expected in input_and_expected:
+            instance = self._get_specific_img_instance(img)
+            actual = instance.get_focal_len()
+            self.assertEqual(expected, actual)
+            if self.ENABLE_PRINTING:
+                print(instance.image_path.stem, actual)
+
+    def test_get_aperture(self):
+        input_and_expected = [
+            ("0027", "f/4.0"),
+            ("0095", "inf"),
+        ]
+        for img, expected in input_and_expected:
+            instance = self._get_specific_img_instance(img)
+            actual = instance.get_aperture()
+            self.assertEqual(expected, actual)
+            if self.ENABLE_PRINTING:
+                print(instance.image_path.stem, actual)
+
+    def test_get_iso(self):
+        input_and_expected = [
+            ("0027", "ISO 400"),
+            ("0028", "ISO 320"),
+            ("0040", "ISO 100"),
+            ("0047", "ISO 100"),
+            ("0095", "ISO 4000"),
+        ]
+        for img, expected in input_and_expected:
+            instance = self._get_specific_img_instance(img)
+            actual = instance.get_iso()
+            self.assertEqual(expected, actual)
+            if self.ENABLE_PRINTING:
+                print(instance.image_path.stem, actual)
+
+    def test_get_gps(self):
+        # fmt: off
+        input_usedms_includealtitude_expected = [
+            ("0027", True, True, "45°47'54.0\"N, 24°9'4.3\"E, 424m"),
+            ("0027", False, False, "45°47.900'N, 24°9.072'E"),
+            ("0095", True, True, None),
+            # does not have altitude info:
+            ("37.27", True, True, "45°47'59.4\"N, 24°9'43.6\"E"),
+        ]
+        # fmt: on
+        for (
+            img,
+            use_dms,
+            include_altitude,
+            expected,
+        ) in input_usedms_includealtitude_expected:
+            instance = self._get_specific_img_instance(img)
+            actual = instance.get_gps(
+                include_altitude=include_altitude, use_dms=use_dms
+            )
+            self.assertEqual(expected, actual)
+            if self.ENABLE_PRINTING:
+                print(instance.image_path.stem, actual)
+
+    def test_get_shutter_speed(self):
+        # fmt: off
+        expected_results = {'1.3s', '1/60s', '1/40s', '1/800s', '1/30s', '1/1250s', '1/500s', '1/25s',
+                            '1/640s', '1/80s', '1/125s', '1/50s', '1/8s', '0.6s', '0.8s', '1/2000s',
+                            '2.0s', '1/3s', '1/1600s', '1/100s', '1/160s', '1/400s', '1/6s', '1/15s',
+                            '1/13s', '1/10s', '1/320s', '1.0s', '1.6s', '1/250s', '1/20s', '1/200s',
+                            '1/5s', '1/1000s', '3.2s', '1/2500s', '1/2s', '1/4s'}
+        images_without_shutterspeed = [
+            "21.37.27"
+        ]
+        # fmt: on
+
+        for ped in self.test_instances:
+            ped = phrugal.exif.PhrugalExifData(ped.image_path)
+            actual = ped.get_shutter_speed()
+
+            if any(x in ped.image_path.name for x in images_without_shutterspeed):
+                self.assertIsNone(actual)
+            else:
+                self.assertIn(actual, expected_results)
+
+            if self.ENABLE_PRINTING:
+                print(ped.image_path.stem, actual)
