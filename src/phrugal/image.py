@@ -12,7 +12,11 @@ from .border_decoration import BorderDecoration
 MM_PER_INCH = 25.4
 
 
-def _calc_common_values() -> list[int]:
+def get_common_values() -> list[float]:
+    """Provide a sequence of commonly used values.
+
+    Since there is no easy rule for these values, they are hard coded.
+    """
     base_values = {
         2500,
         2000,
@@ -120,7 +124,7 @@ class PhrugalImage:
 
 
 class PhrugalExifData:
-    COMMON_DIVIDEND_VALUES = _calc_common_values()
+    COMMON_DIVIDEND_VALUES = get_common_values()
     THRESHOLD_COMMON_DISPLAY = 0.08
     THRESHOLD_FRACTION_DISPLAY = 0.55
 
