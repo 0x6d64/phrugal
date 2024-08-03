@@ -1,8 +1,6 @@
-import pprint
 from pathlib import Path
 
-import tabulate
-
+import phrugal.exif
 import phrugal.image
 import unittest
 
@@ -14,7 +12,7 @@ class TestPhrugal(unittest.TestCase):
     def setUpClass(cls):
         cls.test_image_source = Path("./img/exif-data-testdata").glob("**/*.jpg")
         cls.test_instances = [
-            phrugal.image.PhrugalExifData(x) for x in cls.test_image_source
+            phrugal.exif.PhrugalExifData(x) for x in cls.test_image_source
         ]
 
     def _get_specific_img_instance(self, file_substring):
@@ -47,7 +45,6 @@ class TestPhrugal(unittest.TestCase):
             if self.ENABLE_PRINTING:
                 print(instance.image_path.stem, actual)
 
-
     def test_get_iso(self):
         input_and_expected = [
             ("0027", "ISO 400"),
@@ -73,9 +70,7 @@ class TestPhrugal(unittest.TestCase):
         # fmt: on
 
         for ped in self.test_instances:
-            filename_fragment = ped.image_path.stem.replace("20240729_00", "")
-
-            ped = phrugal.image.PhrugalExifData(ped.image_path)
+            ped = phrugal.exif.PhrugalExifData(ped.image_path)
             actual = ped.get_shutter_speed()
             self.assertIn(actual, expected_results)
 
