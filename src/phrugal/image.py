@@ -17,38 +17,14 @@ def get_common_values() -> list[float]:
 
     Since there is no easy rule for these values, they are hard coded.
     """
+    # fmt: off
     base_values = {
-        2500,
-        2000,
-        1600,
-        1250,
-        1000,
-        800,
-        640,
-        500,
-        400,
-        320,
-        250,
-        200,
-        160,
-        125,
-        100,
-        80,
-        60,
-        50,
-        40,
-        30,
-        25,
-        20,
-        15,
-        13,
-        10,
-        8,
-        6,
-        5,
-        4,
-        2,
+        2500, 2000, 1600, 1250, 1000,
+        800, 640, 500, 400, 320, 250, 200, 160, 125, 100,
+        80, 60, 50, 40, 30, 25, 20, 15, 13, 10,
+        8, 6, 5, 4, 2,
     }
+    # fmt: on
     retval = sorted([float(x) for x in base_values])
     return retval
 
