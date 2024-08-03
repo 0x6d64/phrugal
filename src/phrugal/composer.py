@@ -19,7 +19,7 @@ class PhrugalComposer:
             - for each combination: create score for the fit
                 - todo: how can we assess the fit as a score?
             - then: select best, trigger actual creation of the image
-        
+
 
         """
         pass

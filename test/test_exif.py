@@ -1,8 +1,8 @@
+import unittest
 from pathlib import Path
 
 import phrugal.exif
 import phrugal.image
-import unittest
 
 
 class TestPhrugal(unittest.TestCase):
@@ -60,12 +60,15 @@ class TestPhrugal(unittest.TestCase):
                 print(instance.image_path.stem, actual)
 
     def test_get_gps(self):
+        # fmt: off
         input_usedms_includealtitude_expected = [
             ("0027", True, True, "45°47'54.0\"N, 24°9'4.3\"E, 424m"),
             ("0027", False, False, "45°47.900'N, 24°9.072'E"),
             ("0095", True, True, None),
-            ("21.37.27", True, True, "45°47'59.4\"N, 24°9'43.6\"E"),  # does not have altitude info
+            # does not have altitude info:
+            ("37.27", True, True, "45°47'59.4\"N, 24°9'43.6\"E"),
         ]
+        # fmt: on
         for (
             img,
             use_dms,

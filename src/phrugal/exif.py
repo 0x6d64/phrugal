@@ -1,10 +1,8 @@
 from pathlib import Path
 from typing import Optional, Tuple
-from typing import TYPE_CHECKING
 
 import exifread
 from exifread.classes import IfdTag
-
 from exifread.utils import Ratio
 
 

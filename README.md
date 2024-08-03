@@ -23,8 +23,8 @@ Then, refer to the CLI help for usage notes:
 ```bash
 phrugal --help
 ```
-🚧 TODO: This section needs expansion
 
+🚧 TODO: This section needs expansion
 
 ## Features
 
@@ -46,4 +46,5 @@ Phrugal will probably never:
   apply some filter. There are better tools for that.
 
 ## References and acknowledgements
+
 Phrugal makes heavy use of [Pillow](https://pillow.readthedocs.io/en/stable/).

@@ -7,9 +7,15 @@ from . import ColorTuple, PixelTuple
 
 class BorderDecoration:
     """Represents the text that is written on a border"""
+
     TEXT_RATIO = 0.7  # how many percent of the border shall be covered by text
 
-    def __init__(self, background_color: str = "white", text_color: str = "black", font: Optional[str] = None):
+    def __init__(
+        self,
+        background_color: str = "white",
+        text_color: str = "black",
+        font: Optional[str] = None,
+    ):
         self.background_color = getrgb(background_color)  # type: ColorTuple
         self.text_color = getrgb(text_color)  # type: ColorTuple
         self.font = font
@@ -23,7 +29,7 @@ class BorderDecoration:
         img_x, img_y = image_dims
         return (
             int(desired_border_ratio_x * img_x),
-            int(desired_border_ratio_y * img_y)
+            int(desired_border_ratio_y * img_y),
         )
 
     def get_size_with_border(self, image_dims: PixelTuple) -> PixelTuple:

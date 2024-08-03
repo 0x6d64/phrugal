@@ -1,7 +1,8 @@
+from functools import cache
+
 from geopy import Point
 from geopy.extra.rate_limiter import RateLimiter
 from geopy.geocoders import Nominatim
-from functools import cache
 
 USER_AGENT = "phrugal/0.1"
 
@@ -24,7 +25,7 @@ class Gecoder:
 
     @cache
     def get_location_name(
-            self, lat: float, lon: float, alt: float = 0.0, zoom: int = 12
+        self, lat: float, lon: float, alt: float = 0.0, zoom: int = 12
     ) -> str:
         """Returns a name for given coordinates
 

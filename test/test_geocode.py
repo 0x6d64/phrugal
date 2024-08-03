@@ -1,6 +1,6 @@
+import datetime
 import time
 import unittest
-import datetime
 
 import phrugal.geocode
 
