@@ -1,0 +1,43 @@
+[build-system]
+requires = [
+    "setuptools>=45",
+    "setuptools_scm[toml]>=6.2",
+    "versioneer",
+    "wheel",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Phrugal"
+description = "A tool for efficient multi-image printing with borders"
+authors = [{ name = "Martin Demling", email = "0x6d64@martin-demling.de" }]
+dynamic = ["version", "license"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GPL-3.0-or-later",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "Pillow>=8.0.0",
+    "exifread>=3.0"
+]
+
+[project.optional-dependencies]
+dev = ["black", "ruff"]
+
+[tool.versioneer]
+VCS = "git"
+style = "pep440"
+versionfile_source = "phrugal/_version.py"
+versionfile_build = "phrugal/_version.py"
+tag_prefix = "v"
+parentdir_prefix = "your_package-"
+
+[project.scripts]
+phrugal = "prugal.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
