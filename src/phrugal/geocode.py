@@ -4,7 +4,9 @@ from geopy import Point
 from geopy.extra.rate_limiter import RateLimiter
 from geopy.geocoders import Nominatim
 
-USER_AGENT = "phrugal/0.1"
+import phrugal
+
+USER_AGENT = f"phrugal/{phrugal.__version__}"
 
 
 def get_geocoder() -> Nominatim:
