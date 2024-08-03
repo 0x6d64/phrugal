@@ -51,10 +51,6 @@ class PhrugalImage:
         # 50mm | f/2.8 | 1/250s | ISO 400
         exif = PhrugalExifData(self.file_name)
 
-        # f_len = exif.get_ifd(ExifTags.Base.FocalLength)
-        # aperture = exif.get_ifd(ExifTags.Base.ApertureValue)
-        # exp = exif.get_ifd(ExifTags.Base.ExposureTime)
-        # iso = exif.get_ifd(ExifTags.Base.ISOSpeed)
         candidates = [
             exif.get_focal_len(),
             exif.get_aperture(),

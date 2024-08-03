@@ -17,8 +17,7 @@ class TestPhrugal(unittest.TestCase):
 
     def _get_specific_img_instance(self, file_substring):
         return next(
-            (x for x in self.test_instances if file_substring in x.image_path.name),
-            None,
+            (x for x in self.test_instances if file_substring in x.image_path.name)
         )
 
     def test_get_focal_len(self):
@@ -60,6 +59,27 @@ class TestPhrugal(unittest.TestCase):
             if self.ENABLE_PRINTING:
                 print(instance.image_path.stem, actual)
 
+    def test_get_gps(self):
+        input_usedms_includealtitude_expected = [
+            ("0027", True, True, "45°47'54.0\"N, 24°9'4.3\"E, 424m"),
+            ("0027", False, False, "45°47.900'N, 24°9.072'E"),
+            ("0095", True, True, None),
+            ("21.37.27", True, True, "45°47'59.4\"N, 24°9'43.6\"E"),  # does not have altitude info
+        ]
+        for (
+            img,
+            use_dms,
+            include_altitude,
+            expected,
+        ) in input_usedms_includealtitude_expected:
+            instance = self._get_specific_img_instance(img)
+            actual = instance.get_gps(
+                include_altitude=include_altitude, use_dms=use_dms
+            )
+            self.assertEqual(expected, actual)
+            if self.ENABLE_PRINTING:
+                print(instance.image_path.stem, actual)
+
     def test_get_shutter_speed(self):
         # fmt: off
         expected_results = {'1.3s', '1/60s', '1/40s', '1/800s', '1/30s', '1/1250s', '1/500s', '1/25s',
@@ -67,12 +87,19 @@ class TestPhrugal(unittest.TestCase):
                             '2.0s', '1/3s', '1/1600s', '1/100s', '1/160s', '1/400s', '1/6s', '1/15s',
                             '1/13s', '1/10s', '1/320s', '1.0s', '1.6s', '1/250s', '1/20s', '1/200s',
                             '1/5s', '1/1000s', '3.2s', '1/2500s', '1/2s', '1/4s'}
+        images_without_shutterspeed = [
+            "21.37.27"
+        ]
         # fmt: on
 
         for ped in self.test_instances:
             ped = phrugal.exif.PhrugalExifData(ped.image_path)
             actual = ped.get_shutter_speed()
-            self.assertIn(actual, expected_results)
+
+            if any(x in ped.image_path.name for x in images_without_shutterspeed):
+                self.assertIsNone(actual)
+            else:
+                self.assertIn(actual, expected_results)
 
             if self.ENABLE_PRINTING:
                 print(ped.image_path.stem, actual)
