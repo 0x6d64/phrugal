@@ -101,16 +101,22 @@ class PhrugalImage:
 
 class PhrugalExifData:
     COMMON_DIVIDEND_VALUES = get_common_values()
-    THRESHOLD_COMMON_DISPLAY = 0.08
-    THRESHOLD_FRACTION_DISPLAY = 0.55
+    THRESHOLD_COMMON_DISPLAY = (
+        0.08  # how many deviation is allowed before "snapping" onto common value
+    )
+    THRESHOLD_FRACTION_DISPLAY = (
+        0.55  # smaller values are displayed as fractions of seconds
+    )
+    THRESHOLD_APERTURE_INF = 1e8  # bigger values are considered infinite/tiny
+    INF_APERTURE_REPRESENTATION = "inf"  # represent tiny apertures like this
 
     def __init__(self, image_path: Path | str) -> None:
-        self._image_path = image_path
+        self.image_path = image_path
         with open(image_path, "rb") as fp:
             self.exif_data = exifread.process_file(fp)
 
     def __repr__(self):
-        return Path(self._image_path).name
+        return Path(self.image_path).name
 
     def get_focal_len(self) -> str | None:
         raw = self.exif_data.get("EXIF FocalLength", None)  # type: Optional[IfdTag]
@@ -118,7 +124,7 @@ class PhrugalExifData:
             return None
         else:
             value = float(raw.values[0])
-            return f"{value:.1f}mm"
+            return f"{value:1.0f}mm"
 
     def get_aperture(self) -> str | None:
         raw = self.exif_data.get("EXIF ApertureValue", None)
@@ -126,6 +132,8 @@ class PhrugalExifData:
             return None
         else:
             value = float(raw.values[0])
+            if value > self.THRESHOLD_APERTURE_INF:
+                return str(self.INF_APERTURE_REPRESENTATION)
             return f"f/{value:.1f}"
 
     def get_shutter_speed(self) -> str | None:
@@ -137,7 +145,7 @@ class PhrugalExifData:
             exposure_time = 2 ** (-apex)
             exposure_dividend = 2**apex
             if exposure_time < self.THRESHOLD_FRACTION_DISPLAY:
-                exposure_dividend = self.round_shutter_to_common_value(
+                exposure_dividend = self._round_shutter_to_common_value(
                     float(exposure_dividend)
                 )
                 div_rounded = int(exposure_dividend)
@@ -145,7 +153,7 @@ class PhrugalExifData:
             else:
                 return f"{exposure_time:.1f}s"
 
-    def round_shutter_to_common_value(self, dividend: float) -> float:
+    def _round_shutter_to_common_value(self, dividend: float) -> float:
         closest_common_value = min(
             self.COMMON_DIVIDEND_VALUES, key=lambda a: abs(a - dividend)
         )
