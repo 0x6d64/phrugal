@@ -59,6 +59,24 @@ class TestPhrugal(unittest.TestCase):
             if self.ENABLE_PRINTING:
                 print(instance.image_path.stem, actual)
 
+    def test_get_title(self):
+        instance = self._get_specific_img_instance("0027")
+        with self.assertRaises(NotImplementedError):
+            actual = instance.get_title()
+
+    def test_get_description(self):
+        instance = self._get_specific_img_instance("0027")
+        actual = instance.get_description()
+        self.assertEqual(
+            'Image of "Casa Luxemburg", taken as test data for a photography helper.',
+            actual,
+        )
+
+    def test_get_timestamp(self):
+        instance = self._get_specific_img_instance("0027")
+        actual = instance.get_timestamp()
+        self.assertEqual("todo", actual)
+
     def test_get_gps(self):
         # fmt: off
         input_usedms_includealtitude_expected = [
