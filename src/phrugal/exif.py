@@ -1,3 +1,4 @@
+import datetime
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -33,11 +34,14 @@ class PhrugalExifData:
     )
     THRESHOLD_APERTURE_INF = 1e8  # bigger values are considered infinite/tiny
     INF_APERTURE_REPRESENTATION = "inf"  # represent tiny apertures like this
+    EXTRACT_APPLICATION_NOTES = False  # needed, once we implement get_title()
 
     def __init__(self, image_path: Path | str) -> None:
         self.image_path = image_path
         with open(image_path, "rb") as fp:
-            self.exif_data = exifread.process_file(fp)
+            self.exif_data = exifread.process_file(
+                fp, debug=self.EXTRACT_APPLICATION_NOTES
+            )
 
     def __repr__(self):
         return Path(self.image_path).name
@@ -83,6 +87,35 @@ class PhrugalExifData:
             return None
         else:
             return f"ISO {raw}"
+
+    def get_title(self) -> str | None:
+        """Return the title.
+
+        This is not yet implemented. In order to get the title, we need to tell exifread
+        to use the debug mode, this also gives us the "Image ApplicationNotes" tag.
+
+        The application notes are XML formatted, and also include the title.
+
+        app_notes_xml = self.exif_data.get("Image ApplicationNotes", None)
+
+        The current implementation skips title, since it slows down exif read and other features
+        are more important.
+        """
+        raise NotImplementedError("get_title not yet implemented")
+
+    def get_description(self) -> str | None:
+        raw = self.exif_data.get("Image ImageDescription", None)
+        if raw is None:
+            return None
+        else:
+            return str(raw)
+
+    def get_timestamp(self) -> datetime.datetime | None:
+        raw = self.exif_data.get("EXIF DateTimeOriginal", None)
+        if raw is None:
+            return None
+        else:
+            return datetime.datetime.strptime(raw, "%Y:%m:%d %H:%M:%S")
 
     def get_gps(
         self, include_altitude: bool = True, use_dms: bool = True
