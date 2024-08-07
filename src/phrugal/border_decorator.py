@@ -8,6 +8,12 @@ from .image import PhrugalImage
 from .types import ColorTuple, Dimensions
 
 
+def add_dimensions(a: Dimensions, b: Dimensions) -> Dimensions:
+    a_x, a_y = a
+    b_x, b_y = b
+    return a_x + b_x, a_y + b_y
+
+
 class BorderDecorator:
     """Represents geometry of an image border and the text written on it"""
 
@@ -21,6 +27,7 @@ class BorderDecorator:
     def __init__(
         self,
         base_image: PhrugalImage,
+        target_aspect_ratio: float | None = None,
         background_color: str = "white",
         text_color: str = "black",
         font_name: Optional[str] = DEFAULT_FONT,
@@ -29,6 +36,7 @@ class BorderDecorator:
         self.background_color = getrgb(background_color)  # type: ColorTuple
         self.text_color = getrgb(text_color)  # type: ColorTuple
         self.font_name = font_name
+        self.target_aspect_ratio = target_aspect_ratio if target_aspect_ratio else 1.0
 
     def get_decorated_image(self) -> Image:
         needs_rotation = self.base_image.aspect_ratio < 1
@@ -39,7 +47,7 @@ class BorderDecorator:
         # TODO: real implementation
         return self.base_image.image
 
-    def get_border_dimensions(self) -> Dimensions:
+    def _get_minimal_border_dimensions(self) -> Dimensions:
         x_dim_orginal, y_dim_orginal = self.base_image.image_dims
 
         # we target a 5mm border on a 13cm x 9cm print as a reference size
@@ -56,10 +64,33 @@ class BorderDecorator:
 
         return int(x_border), int(y_border)
 
+    def get_border_dimensions(self):
+        minimal_border_dimensions = self._get_minimal_border_dimensions()
+        min_size_x, min_size_y = add_dimensions(
+            minimal_border_dimensions, self.base_image.image_dims
+        )
+        current_aspect_ratio = min_size_x / min_size_y
+
+        if current_aspect_ratio > self.target_aspect_ratio:
+            # Image is wider than target aspect ratio
+            new_height = min_size_x / self.target_aspect_ratio
+            padding_y = new_height - min_size_y
+            padding_x = 0
+        else:
+            # Image is taller than target aspect ratio
+            new_width = min_size_y * self.target_aspect_ratio
+            padding_x = new_width - min_size_x
+            padding_y = 0
+
+        extra_border_padding = Dimensions(padding_x, padding_y)
+
+        return add_dimensions(extra_border_padding, minimal_border_dimensions)
+
     def get_padded_dimensions(self) -> Dimensions:
-        x_border, y_border = self.get_border_dimensions()
-        x_dims, y_dims = self.base_image.image_dims
-        return x_border + x_dims, y_border + y_dims
+        padded = add_dimensions(
+            self._get_minimal_border_dimensions(), self.base_image.image_dims
+        )
+        return padded
 
     # def get_decorated_image(self, decoration: BorderDecorator) -> Image:
     #     new_img = Image.new(

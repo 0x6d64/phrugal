@@ -53,7 +53,9 @@ class PhrugalComposer:
             composition_filename = (
                 output_path / "-".join(x.file_name.stem for x in group)
             ).with_suffix(".jpg")
-            composition = ImageComposition(group)
+            composition = ImageComposition(
+                group, target_aspect_ratio=self.target_aspect_ratio
+            )
             composition.write_composition(filename=composition_filename)
         print(img_groups)
 
@@ -64,7 +66,7 @@ class PhrugalComposer:
     def generate_tuples(input_objects: List[T], tuple_len: int) -> List[Tuple[T, ...]]:
         """Split a list into tuples of size n (last remainder tuple can be smaller)."""
         result = list(zip(*[input_objects[i:] for i in range(tuple_len)]))
-        remainder = input_objects[len(result) * tuple_len:]
+        remainder = input_objects[len(result) * tuple_len :]
         if remainder:
             result.append(tuple(remainder))
         return result
