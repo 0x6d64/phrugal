@@ -43,4 +43,7 @@ class PhrugalImage:
         return False
 
     def __del__(self):
-        self.image.close()
+        try:
+            self.image.close()
+        except AttributeError:  # if open fails, we will not have self.image, ignore it
+            pass
