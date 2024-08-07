@@ -81,14 +81,12 @@ class BorderDecorator:
             new_width = min_size_y * self.target_aspect_ratio
             padding_x = new_width - min_size_x
             padding_y = 0
-
-        extra_border_padding = Dimensions(padding_x, padding_y)
-
+        extra_border_padding = padding_x, padding_y
         return add_dimensions(extra_border_padding, minimal_border_dimensions)
 
     def get_padded_dimensions(self) -> Dimensions:
         padded = add_dimensions(
-            self._get_minimal_border_dimensions(), self.base_image.image_dims
+            self.get_border_dimensions(), self.base_image.image_dims
         )
         return padded
 
