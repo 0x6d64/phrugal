@@ -13,6 +13,7 @@ class PhrugalImage:
     def __init__(self, file_name: Path | str) -> None:
         self.file_name = Path(file_name)
         self.image = Image.open(self.file_name, mode="r")
+        self.rotation_degrees = 0
 
     @property
     def image_dims(self) -> Dimensions:
@@ -28,6 +29,11 @@ class PhrugalImage:
     def aspect_ratio_normalized(self) -> float:
         """Same as aspect ratio, but assume that we rotate portrait orientation to landscape always"""
         return self.aspect_ratio if self.aspect_ratio > 1 else 1 / self.aspect_ratio
+
+    def rotate_90_deg_ccw(self):
+        rotated_img = self.image.rotate(90, expand=True)
+        self.rotation_degrees += 90
+        self.image = rotated_img
 
     def close_image(self):
         self.image.close()

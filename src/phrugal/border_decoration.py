@@ -2,6 +2,7 @@ from typing import Optional
 
 from PIL.Image import Image
 from PIL.ImageColor import getrgb
+from PIL.ImageFont import truetype
 
 from .image import PhrugalImage
 from .types import ColorTuple, Dimensions
@@ -11,22 +12,49 @@ class BorderDecorator:
     """Represents geometry of an image border and the text written on it"""
 
     TEXT_RATIO = 0.7  # how many percent of the border shall be covered by text
+    FONT_CACHE = dict()
+    DEFAULT_FONT = "arial.ttf"
+    BORDER_MULTIPLIER = 1.0
 
     def __init__(
         self,
         base_image: PhrugalImage,
         background_color: str = "white",
         text_color: str = "black",
-        font: Optional[str] = None,
+        font_name: Optional[str] = DEFAULT_FONT,
     ):
         self.base_image = base_image
         self.background_color = getrgb(background_color)  # type: ColorTuple
         self.text_color = getrgb(text_color)  # type: ColorTuple
-        self.font = font
+        self.font_name = font_name
 
     def get_decorated_image(self) -> Image:
+        needs_rotation = self.base_image.aspect_ratio < 1
+        if needs_rotation:
+            self.base_image.rotate_90_deg_ccw()
+
+        image_dimensions_padded = self.get_padded_dimensions()
         # TODO: real implementation
         return self.base_image.image
+
+    def get_border_dimensions(self) -> Dimensions:
+        x_dim_orginal, y_dim_orginal = self.base_image.image_dims
+
+
+        # we target a 5mm border on a 13cm x 9cm print as a reference size
+        bigger_dimension = max(x_dim_orginal, y_dim_orginal)
+        desired_border_width_mm = 5.0 * self.BORDER_MULTIPLIER
+        nominal_dimension_biggerside_mm = 130
+        desired_border_ratio = desired_border_width_mm / nominal_dimension_biggerside_mm
+
+        x_border = 0
+        y_border = 0
+        return x_border, y_border
+
+    def get_padded_dimensions(self) -> Dimensions:
+        x_border, y_border = self.get_border_dimensions()
+        x_dims, y_dims = self.base_image.image_dims
+        return x_border + x_dims, y_border + y_dims
 
     # def get_decorated_image(self, decoration: BorderDecorator) -> Image:
     #     new_img = Image.new(
@@ -74,6 +102,14 @@ class BorderDecorator:
     #     else:
     #         font = ImageFont.truetype(decoration.font, size=font_size)
     #     return font
+
+    def _get_font(self, font_name: str, font_size: int) -> str:
+        if (font_name, font_size) in self.FONT_CACHE:
+            font = self.FONT_CACHE[(font_name, font_size)]
+        else:
+            font = truetype(font_name, size=font_size)
+            self.FONT_CACHE[(font_name, font_size)] = font
+        return font
 
     def get_border_size(self, image_dims: Dimensions) -> Dimensions:
         nominal_dimension_x_mm = 130
