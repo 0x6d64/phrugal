@@ -15,6 +15,8 @@ class BorderDecorator:
     FONT_CACHE = dict()
     DEFAULT_FONT = "arial.ttf"
     BORDER_MULTIPLIER = 1.0
+    NOMINAL_DIMENSIONS_LARGER_SIDE_MM = 130.0
+    DESIRED_BORDER_WIDTH_BASE_MM = 5.0
 
     def __init__(
         self,
@@ -40,16 +42,19 @@ class BorderDecorator:
     def get_border_dimensions(self) -> Dimensions:
         x_dim_orginal, y_dim_orginal = self.base_image.image_dims
 
-
         # we target a 5mm border on a 13cm x 9cm print as a reference size
-        bigger_dimension = max(x_dim_orginal, y_dim_orginal)
-        desired_border_width_mm = 5.0 * self.BORDER_MULTIPLIER
-        nominal_dimension_biggerside_mm = 130
-        desired_border_ratio = desired_border_width_mm / nominal_dimension_biggerside_mm
+        desired_border_ratio = (
+            self.DESIRED_BORDER_WIDTH_BASE_MM / self.NOMINAL_DIMENSIONS_LARGER_SIDE_MM
+        ) * self.BORDER_MULTIPLIER
 
-        x_border = 0
-        y_border = 0
-        return x_border, y_border
+        if x_dim_orginal > y_dim_orginal:
+            x_border = desired_border_ratio * x_dim_orginal
+            y_border = x_border
+        else:
+            y_border = desired_border_ratio * y_dim_orginal
+            x_border = y_border
+
+        return int(x_border), int(y_border)
 
     def get_padded_dimensions(self) -> Dimensions:
         x_border, y_border = self.get_border_dimensions()
