@@ -25,12 +25,12 @@ class BorderDecorator:
     DESIRED_BORDER_WIDTH_BASE_MM = 5.0
 
     def __init__(
-        self,
-        base_image: PhrugalImage,
-        target_aspect_ratio: float | None = None,
-        background_color: str = "white",
-        text_color: str = "black",
-        font_name: Optional[str] = DEFAULT_FONT,
+            self,
+            base_image: PhrugalImage,
+            target_aspect_ratio: float | None = None,
+            background_color: str = "white",
+            text_color: str = "black",
+            font_name: Optional[str] = DEFAULT_FONT,
     ):
         self.base_image = base_image
         self.background_color = getrgb(background_color)  # type: ColorTuple
@@ -50,10 +50,9 @@ class BorderDecorator:
     def _get_minimal_border_dimensions(self) -> Dimensions:
         x_dim_orginal, y_dim_orginal = self.base_image.image_dims
 
-        # we target a 5mm border on a 13cm x 9cm print as a reference size
-        desired_border_ratio = (
-            self.DESIRED_BORDER_WIDTH_BASE_MM / self.NOMINAL_DIMENSIONS_LARGER_SIDE_MM
-        ) * self.BORDER_MULTIPLIER
+        # we target a 5mm border on each side a 13cm x 9cm print as a reference size
+        desired_border_ratio = (self.DESIRED_BORDER_WIDTH_BASE_MM / self.NOMINAL_DIMENSIONS_LARGER_SIDE_MM
+                                ) * self.BORDER_MULTIPLIER * 2.0  # factor 2: we want the border on both sides of the image
 
         if x_dim_orginal > y_dim_orginal:
             x_border = desired_border_ratio * x_dim_orginal
@@ -65,6 +64,11 @@ class BorderDecorator:
         return int(x_border), int(y_border)
 
     def get_border_dimensions(self):
+        """Return border dimensions in pixel to hit the target aspect ratio.
+
+        Note: the border dimensions will be always be for both borders, so the actual
+        borders will e.g. have half of the returned value.
+        """
         minimal_border_dimensions = self._get_minimal_border_dimensions()
         min_size_x, min_size_y = add_dimensions(
             minimal_border_dimensions, self.base_image.image_dims
