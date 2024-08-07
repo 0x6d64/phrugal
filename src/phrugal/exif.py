@@ -115,7 +115,7 @@ class PhrugalExifData:
         if raw is None:
             return None
         else:
-            return datetime.datetime.strptime(raw, "%Y:%m:%d %H:%M:%S")
+            return datetime.datetime.strptime(str(raw), "%Y:%m:%d %H:%M:%S")
 
     def get_gps(
         self, include_altitude: bool = True, use_dms: bool = True

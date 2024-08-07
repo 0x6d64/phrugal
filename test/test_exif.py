@@ -1,4 +1,5 @@
 import unittest
+from datetime import datetime
 from pathlib import Path
 
 import phrugal.exif
@@ -75,7 +76,8 @@ class TestPhrugal(unittest.TestCase):
     def test_get_timestamp(self):
         instance = self._get_specific_img_instance("0027")
         actual = instance.get_timestamp()
-        self.assertEqual("todo", actual)
+        expected = datetime(2024, 7, 29, 18, 36, 10)
+        self.assertEqual(expected, actual)
 
     def test_get_gps(self):
         # fmt: off
