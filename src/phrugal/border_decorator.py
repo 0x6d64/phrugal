@@ -21,16 +21,16 @@ class BorderDecorator:
     FONT_CACHE = dict()
     DEFAULT_FONT = "arial.ttf"
     BORDER_MULTIPLIER = 1.0
-    NOMINAL_DIMENSIONS_LARGER_SIDE_MM = 130.0
+    NOMINAL_LEN_LARGER_SIDE_MM = 130.0
     DESIRED_BORDER_WIDTH_BASE_MM = 5.0
 
     def __init__(
-            self,
-            base_image: PhrugalImage,
-            target_aspect_ratio: float | None = None,
-            background_color: str = "white",
-            text_color: str = "black",
-            font_name: Optional[str] = DEFAULT_FONT,
+        self,
+        base_image: PhrugalImage,
+        target_aspect_ratio: float | None = None,
+        background_color: str = "white",
+        text_color: str = "black",
+        font_name: Optional[str] = DEFAULT_FONT,
     ):
         self.base_image = base_image
         self.background_color = getrgb(background_color)  # type: ColorTuple
@@ -51,8 +51,10 @@ class BorderDecorator:
         x_dim_orginal, y_dim_orginal = self.base_image.image_dims
 
         # we target a 5mm border on each side a 13cm x 9cm print as a reference size
-        desired_border_ratio = (self.DESIRED_BORDER_WIDTH_BASE_MM / self.NOMINAL_DIMENSIONS_LARGER_SIDE_MM
-                                ) * self.BORDER_MULTIPLIER * 2.0  # factor 2: we want the border on both sides of the image
+        # factor 2: we want the border on both sides of the image
+        desired_border_ratio = (
+            self.DESIRED_BORDER_WIDTH_BASE_MM * self.BORDER_MULTIPLIER * 2.0
+        ) / self.NOMINAL_LEN_LARGER_SIDE_MM
 
         if x_dim_orginal > y_dim_orginal:
             x_border = desired_border_ratio * x_dim_orginal
@@ -85,6 +87,7 @@ class BorderDecorator:
             new_width = min_size_y * self.target_aspect_ratio
             padding_x = new_width - min_size_x
             padding_y = 0
+            
         extra_border_padding = padding_x, padding_y
         return add_dimensions(extra_border_padding, minimal_border_dimensions)
 
