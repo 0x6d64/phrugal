@@ -3,7 +3,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-from . import PixelTuple
+from .types import Dimensions
 from .border_decoration import BorderDecoration
 from .exif import PhrugalExifData
 
@@ -19,7 +19,7 @@ class PhrugalImage:
         self._image = Image.open(self.file_name, mode="r")
 
     @property
-    def image_dims(self) -> PixelTuple:
+    def image_dims(self) -> Dimensions:
         return self._image.size
 
     @property

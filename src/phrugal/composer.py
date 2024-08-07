@@ -61,9 +61,10 @@ class PhrugalComposer:
         self.input_files = [p for p in Path(path).glob("**/*.jpg")]
 
     @staticmethod
-    def generate_tuples(objects: List[T], n: int) -> List[Tuple[T, ...]]:
-        result = list(zip(*[objects[i:] for i in range(n)]))
-        remainder = objects[len(result) * n :]
+    def generate_tuples(input_objects: List[T], tuple_len: int) -> List[Tuple[T, ...]]:
+        """Split a list into tuples of size n (last remainder tuple can be smaller)."""
+        result = list(zip(*[input_objects[i:] for i in range(tuple_len)]))
+        remainder = input_objects[len(result) * tuple_len:]
         if remainder:
             result.append(tuple(remainder))
         return result
