@@ -7,19 +7,31 @@ from . import PixelTuple
 from .border_decoration import BorderDecoration
 from .exif import PhrugalExifData
 
+
+
 MM_PER_INCH = 25.4
 
 
 @dataclass
 class PhrugalImage:
     def __init__(self, file_name: Path | str) -> None:
-        self.file_name = file_name
+        self.file_name = Path(file_name)
         self._image = Image.open(self.file_name, mode="r")
-        pass
 
     @property
     def image_dims(self) -> PixelTuple:
         return self._image.size
+
+    @property
+    def aspect_ratio(self) -> float:
+        """y_dim / x_dim"""
+        x_dim, y_dim = self.image_dims
+        return float(x_dim) / float(y_dim)
+
+    @property
+    def aspect_ratio_normalized(self) -> float:
+        """Same as aspect ratio, but assume that we rotate portrait orientation to landscape always"""
+        return self.aspect_ratio if self.aspect_ratio > 1 else 1 / self.aspect_ratio
 
     def get_decorated_image(self, decoration: BorderDecoration) -> Image:
         new_img = Image.new(
@@ -68,9 +80,18 @@ class PhrugalImage:
             font = ImageFont.truetype(decoration.font, size=font_size)
         return font
 
+    def close_image(self):
+        self._image.close()
+
+    def __repr__(self):
+        return f"{self.file_name.name}"
+
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._image.close()
         return False
+
+    def __del__(self):
+        self._image.close()

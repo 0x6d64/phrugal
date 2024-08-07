@@ -6,7 +6,7 @@ from . import ColorTuple, PixelTuple
 
 
 class BorderDecoration:
-    """Represents the text that is written on a border"""
+    """Represents geometry of an image border and the text written on it"""
 
     TEXT_RATIO = 0.7  # how many percent of the border shall be covered by text
 
