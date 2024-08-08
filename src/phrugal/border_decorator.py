@@ -1,7 +1,9 @@
+from fractions import Fraction
 from typing import Optional
 
-from PIL.Image import Image
+import PIL.Image as PilImage
 from PIL.ImageColor import getrgb
+from PIL.ImageDraw import Draw
 from PIL.ImageFont import truetype
 
 from .image import PhrugalImage
@@ -9,9 +11,16 @@ from .types import ColorTuple, Dimensions
 
 
 def add_dimensions(a: Dimensions, b: Dimensions) -> Dimensions:
+    assert len(a) == len(b) == 2
     a_x, a_y = a
     b_x, b_y = b
-    return a_x + b_x, a_y + b_y
+    return int(a_x + b_x), int(a_y + b_y)
+
+
+def scale_dimensions(d: Dimensions, scale: float) -> Dimensions:
+    x, y = d
+    new_dim = int(x * scale), int(y * scale)
+    return new_dim
 
 
 class BorderDecorator:
@@ -27,7 +36,7 @@ class BorderDecorator:
     def __init__(
         self,
         base_image: PhrugalImage,
-        target_aspect_ratio: float | None = None,
+        target_aspect_ratio: float | Fraction | None = None,
         background_color: str = "white",
         text_color: str = "black",
         font_name: Optional[str] = DEFAULT_FONT,
@@ -36,16 +45,31 @@ class BorderDecorator:
         self.background_color = getrgb(background_color)  # type: ColorTuple
         self.text_color = getrgb(text_color)  # type: ColorTuple
         self.font_name = font_name
-        self.target_aspect_ratio = target_aspect_ratio if target_aspect_ratio else 1.0
+        self.target_aspect_ratio = (
+            target_aspect_ratio if target_aspect_ratio else Fraction(3, 2)
+        )
 
-    def get_decorated_image(self) -> Image:
+    def get_decorated_image(self) -> PilImage.Image:
         needs_rotation = self.base_image.aspect_ratio < 1
         if needs_rotation:
             self.base_image.rotate_90_deg_ccw()
 
         image_dimensions_padded = self.get_padded_dimensions()
-        # TODO: real implementation
-        return self.base_image.image
+        decorated_img = PilImage.new(
+            "RGB", image_dimensions_padded, color=self.background_color
+        )
+        x_border, y_border = self.get_border_dimensions()
+        decorated_img.paste(
+            self.base_image.pillow_image,
+            scale_dimensions(self.get_border_dimensions(), 0.5),
+        )
+
+        # TODO: draw text
+
+        return decorated_img
+
+    def draw_text(self, image_w_border) -> None:
+        draw = Draw(image_w_border)
 
     def _get_minimal_border_dimensions(self) -> Dimensions:
         x_dim_orginal, y_dim_orginal = self.base_image.image_dims
@@ -87,7 +111,7 @@ class BorderDecorator:
             new_width = min_size_y * self.target_aspect_ratio
             padding_x = new_width - min_size_x
             padding_y = 0
-            
+
         extra_border_padding = padding_x, padding_y
         return add_dimensions(extra_border_padding, minimal_border_dimensions)
 
@@ -95,6 +119,7 @@ class BorderDecorator:
         padded = add_dimensions(
             self.get_border_dimensions(), self.base_image.image_dims
         )
+        padded = int(padded[0]), int(padded[1])  # ensure int as values
         return padded
 
     # def get_decorated_image(self, decoration: BorderDecorator) -> Image:
@@ -144,32 +169,19 @@ class BorderDecorator:
     #         font = ImageFont.truetype(decoration.font, size=font_size)
     #     return font
 
-    def _get_font(self, font_name: str, font_size: int) -> str:
+    def _get_font(self, font_name: str, font_size: int | None = None) -> str:
+        if font_size is None:
+            font_size = self.get_font_size()
         if (font_name, font_size) in self.FONT_CACHE:
-            font = self.FONT_CACHE[(font_name, font_size)]
+            font = self.FONT_CACHE[(font_name, int(font_size))]
         else:
             font = truetype(font_name, size=font_size)
-            self.FONT_CACHE[(font_name, font_size)] = font
+            self.FONT_CACHE[(font_name, int(font_size))] = font
         return font
 
-    def get_border_size(self, image_dims: Dimensions) -> Dimensions:
-        nominal_dimension_x_mm = 130
-        nominal_dimension_y_mm = 90
-        desired_border_width_mm = 5
-        desired_border_ratio_x = desired_border_width_mm / nominal_dimension_x_mm
-        desired_border_ratio_y = desired_border_width_mm / nominal_dimension_y_mm
-        img_x, img_y = image_dims
-        return (
-            int(desired_border_ratio_x * img_x),
-            int(desired_border_ratio_y * img_y),
-        )
-
-    def get_size_with_border(self, image_dims: Dimensions) -> Dimensions:
-        border_dim = self.get_border_size(image_dims)
-        result = tuple(2 * brd + im for brd, im in zip(border_dim, image_dims))
-        return result
-
-    def get_font_size(self, image_dims: Dimensions) -> float:
-        dim_x, dim_y = self.get_border_size(image_dims)
-        dim_average = (dim_x + dim_y) / 2
-        return dim_average * self.TEXT_RATIO
+    def get_font_size(self) -> int:
+        dim_x, dim_y = self.get_border_dimensions()
+        dim_smaller = min(dim_x, dim_y)
+        # factor 2, since border size returns dimensions for both borders
+        fs = (dim_smaller / 2) * self.TEXT_RATIO
+        return int(fs)

@@ -12,12 +12,12 @@ MM_PER_INCH = 25.4
 class PhrugalImage:
     def __init__(self, file_name: Path | str) -> None:
         self.file_name = Path(file_name)
-        self.image = Image.open(self.file_name, mode="r")
+        self.pillow_image = Image.open(self.file_name, mode="r")
         self.rotation_degrees = 0
 
     @property
     def image_dims(self) -> Dimensions:
-        return self.image.size
+        return self.pillow_image.size
 
     @property
     def aspect_ratio(self) -> float:
@@ -31,12 +31,12 @@ class PhrugalImage:
         return self.aspect_ratio if self.aspect_ratio > 1 else 1 / self.aspect_ratio
 
     def rotate_90_deg_ccw(self):
-        rotated_img = self.image.rotate(90, expand=True)
+        rotated_img = self.pillow_image.rotate(90, expand=True)
         self.rotation_degrees += 90
-        self.image = rotated_img
+        self.pillow_image = rotated_img
 
     def close_image(self):
-        self.image.close()
+        self.pillow_image.close()
 
     def __repr__(self):
         return f"{self.file_name.name}"
@@ -45,11 +45,11 @@ class PhrugalImage:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.image.close()
+        self.pillow_image.close()
         return False
 
     def __del__(self):
         try:
-            self.image.close()
+            self.pillow_image.close()
         except AttributeError:  # if open fails, we will not have self.image, ignore it
             pass
