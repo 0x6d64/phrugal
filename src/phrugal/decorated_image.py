@@ -6,6 +6,7 @@ from PIL.ImageColor import getrgb
 from PIL.ImageDraw import Draw
 from PIL.ImageFont import truetype
 
+from .decoration_config import DecorationConfig
 from .image import PhrugalImage
 from .types import ColorTuple, Dimensions
 
@@ -40,6 +41,7 @@ class DecoratedPhrugalImage:
         background_color: str = "white",
         text_color: str = "black",
         font_name: Optional[str] = DEFAULT_FONT,
+        decoration_config: DecorationConfig | None = None,
     ):
         self.base_image = base_image
         self.background_color = getrgb(background_color)  # type: ColorTuple
@@ -48,6 +50,7 @@ class DecoratedPhrugalImage:
         self.target_aspect_ratio = (
             target_aspect_ratio if target_aspect_ratio else Fraction(3, 2)
         )
+        self.config = decoration_config
 
     def get_decorated_image(self) -> PilImage.Image:
         needs_rotation = self.base_image.aspect_ratio < 1
@@ -72,7 +75,6 @@ class DecoratedPhrugalImage:
         This modification is in-place.
         """
         draw = Draw(image_w_border)
-
 
     def _get_minimal_border_dimensions(self) -> Dimensions:
         x_dim_original, y_dim_original = self.base_image.image_dims

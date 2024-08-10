@@ -5,7 +5,7 @@ classDiagram
     class PhrugalImage {
     }
 
-    class BorderDecorator {
+    class DecoratedPhrugalImage {
     }
 
     class Composer {
@@ -14,8 +14,13 @@ classDiagram
     class ImageComposition {
     }
 
+    class DecorationConfig {
+    }
+
     Composer --> "1..*" ImageComposition: creates
     Composer --> "1..*" PhrugalImage: lazy loads
-    ImageComposition --> "1..*" BorderDecorator: instantiates
-    BorderDecorator ..> "1" PhrugalImage: fully load to decorate
+    ImageComposition --> "1..*" DecoratedPhrugalImage: instantiates
+    DecoratedPhrugalImage ..> "1" PhrugalImage: fully load to decorate
+    DecoratedPhrugalImage ..>  DecorationConfig : uses to get parameters for decoration draw
+    Composer --> "1" DecorationConfig : instantiates
 ```
