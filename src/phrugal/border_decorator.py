@@ -72,7 +72,7 @@ class BorderDecorator:
         draw = Draw(image_w_border)
 
     def _get_minimal_border_dimensions(self) -> Dimensions:
-        x_dim_orginal, y_dim_orginal = self.base_image.image_dims
+        x_dim_original, y_dim_original = self.base_image.image_dims
 
         # we target a 5mm border on each side a 13cm x 9cm print as a reference size
         # factor 2: we want the border on both sides of the image
@@ -80,11 +80,11 @@ class BorderDecorator:
             self.DESIRED_BORDER_WIDTH_BASE_MM * self.BORDER_MULTIPLIER * 2.0
         ) / self.NOMINAL_LEN_LARGER_SIDE_MM
 
-        if x_dim_orginal > y_dim_orginal:
-            x_border = desired_border_ratio * x_dim_orginal
+        if x_dim_original > y_dim_original:
+            x_border = desired_border_ratio * x_dim_original
             y_border = x_border
         else:
-            y_border = desired_border_ratio * y_dim_orginal
+            y_border = desired_border_ratio * y_dim_original
             x_border = y_border
 
         return int(x_border), int(y_border)
