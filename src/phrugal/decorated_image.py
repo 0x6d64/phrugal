@@ -23,7 +23,7 @@ def scale_dimensions(d: Dimensions, scale: float) -> Dimensions:
     return new_dim
 
 
-class BorderDecorator:
+class DecoratedPhrugalImage:
     """Represents geometry of an image border and the text written on it"""
 
     TEXT_RATIO = 0.7  # how many percent of the border shall be covered by text
@@ -63,13 +63,16 @@ class BorderDecorator:
             self.base_image.pillow_image,
             scale_dimensions(self.get_border_dimensions(), 0.5),
         )
-
-        # TODO: draw text
-
+        self.draw_text_items(decorated_img)
         return decorated_img
 
-    def draw_text(self, image_w_border) -> None:
+    def draw_text_items(self, image_w_border) -> None:
+        """Write all the configured text into the borders.
+
+        This modification is in-place.
+        """
         draw = Draw(image_w_border)
+
 
     def _get_minimal_border_dimensions(self) -> Dimensions:
         x_dim_original, y_dim_original = self.base_image.image_dims

@@ -4,7 +4,7 @@ from typing import Iterable
 
 from PIL.Image import Image
 
-from phrugal.border_decorator import BorderDecorator
+from phrugal.decorated_image import DecoratedPhrugalImage
 from phrugal.image import PhrugalImage
 
 
@@ -23,7 +23,7 @@ class ImageComposition:
     def _get_decorated_images(self) -> Iterable[Image]:
         decorated_images = []
         for image in self.images:
-            decorator = BorderDecorator(
+            decorator = DecoratedPhrugalImage(
                 image, target_aspect_ratio=self.target_aspect_ratio
             )
             decorated_images.append(decorator.get_decorated_image())
