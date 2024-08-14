@@ -9,7 +9,7 @@ class TestGeocode(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.geocoder = phrugal.geocode.Gecoder()
+        cls.geocoder = phrugal.geocode.Geocoder()
 
     def setUp(self):
         self.geocoder._CALLS_MADE = 0  # reset count

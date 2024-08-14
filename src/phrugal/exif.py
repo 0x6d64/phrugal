@@ -1,10 +1,15 @@
 import datetime
+from collections import namedtuple
 from pathlib import Path
 from typing import Optional, Tuple
 
 import exifread
 from exifread.classes import IfdTag
 from exifread.utils import Ratio
+
+from .geocode import Geocoder
+
+GpsData = namedtuple("GpsData", ["lat", "lat_ref", "lon", "lon_ref", "altitude"])
 
 
 def get_common_values() -> list[float]:
@@ -42,11 +47,12 @@ class PhrugalExifData:
             self.exif_data = exifread.process_file(
                 fp, debug=self.EXTRACT_APPLICATION_NOTES
             )
+        self.geocoder = Geocoder()
 
     def __repr__(self):
         return f"exif: {Path(self.image_path).name}"
 
-    def get_focal_len(self) -> str | None:
+    def get_focal_length(self) -> str | None:
         raw = self.exif_data.get("EXIF FocalLength", None)  # type: Optional[IfdTag]
         if raw is None:
             return None
@@ -71,7 +77,7 @@ class PhrugalExifData:
         else:
             apex = raw.values[0]
             exposure_time = 2 ** (-apex)
-            exposure_dividend = 2**apex
+            exposure_dividend = 2 ** apex
             if exposure_time < self.THRESHOLD_FRACTION_DISPLAY:
                 exposure_dividend = self._round_shutter_to_common_value(
                     float(exposure_dividend)
@@ -117,47 +123,59 @@ class PhrugalExifData:
         else:
             return datetime.datetime.strptime(str(raw), "%Y:%m:%d %H:%M:%S")
 
-    def get_gps(
-        self, include_altitude: bool = True, use_dms: bool = True
-    ) -> str | None:
+    def _get_gps_raw(self) -> GpsData:
         lat = self.exif_data.get("GPS GPSLatitude", None)
         lat_ref = self.exif_data.get("GPS GPSLatitudeRef", None)
-        long = self.exif_data.get("GPS GPSLongitude", None)
-        long_ref = self.exif_data.get("GPS GPSLongitudeRef", None)
+        lon = self.exif_data.get("GPS GPSLongitude", None)
+        lon_ref = self.exif_data.get("GPS GPSLongitudeRef", None)
         alt = self.exif_data.get("GPS GPSAltitude", None)
+        return GpsData(
+            self._ratios_to_coordinates(lat.values) if lat else None,
+            lat_ref,
+            self._ratios_to_coordinates(lon.values) if lon else None,
+            lon_ref,
+            alt
+        )
 
-        have_gps_fix = all([lat, lat_ref, long, long_ref])
-        have_altitude = alt is not None
+    def get_gps_coordinates(
+            self, include_altitude: bool = True, use_dms: bool = True
+    ) -> str | None:
+        gps_data = self._get_gps_raw()
+
+        have_gps_fix = all([gps_data.lat, gps_data.lat_ref, gps_data.lon, gps_data.lon_ref])
+        have_altitude = gps_data.altitude is not None
 
         if have_gps_fix:
             gps_formatted = self._represent_gps_data(
-                lat, lat_ref, long, long_ref, format="dms" if use_dms else "dds"
+                gps_data, format="dms" if use_dms else "dds"
             )
 
             if have_altitude and include_altitude:
-                altidue_value = float(alt.values[0])
+                altidue_value = float(gps_data.altitude.values[0])
                 gps_formatted += f", {altidue_value:1.0f}m"
         else:
             return None
-
         return gps_formatted
+
+    def get_geocode(self):
+        pass
 
     @classmethod
     def _represent_gps_data(
-        cls, lat: list, lat_ref, lon: list, lon_ref, format: str = "dms"
+            cls, gps_data: GpsData, format: str = "dms"
     ) -> str:
-        lat_deg, lat_min, lat_sec = cls._ratios_to_coordinates(lat.values)
-        lon_deg, lon_min, lon_sec = cls._ratios_to_coordinates(lon.values)
+        lat_deg, lat_min, lat_sec = gps_data.lat
+        lon_deg, lon_min, lon_sec = gps_data.lon
 
         # fmt: off
         if format == "dms":  # degree, minute, second
-            lat_formatted = f"{lat_deg:1.0f}°{lat_min:1.0f}'{lat_sec:1.1f}\"{str(lat_ref)}"
-            lon_formatted = f"{lon_deg:1.0f}°{lon_min:1.0f}'{lon_sec:1.1f}\"{str(lon_ref)}"
+            lat_formatted = f"{lat_deg:1.0f}°{lat_min:1.0f}'{lat_sec:1.1f}\"{str(gps_data.lat_ref)}"
+            lon_formatted = f"{lon_deg:1.0f}°{lon_min:1.0f}'{lon_sec:1.1f}\"{str(gps_data.lon_ref)}"
         elif format == "dds":  # degree, decimal minute
             lat_min += lat_sec / 60
             lon_min += lon_sec / 60
-            lat_formatted = f"{lat_deg:1.0f}°{lat_min:1.3f}'{str(lat_ref)}"
-            lon_formatted = f"{lon_deg:1.0f}°{lon_min:1.3f}'{str(lon_ref)}"
+            lat_formatted = f"{lat_deg:1.0f}°{lat_min:1.3f}'{str(gps_data.lat_ref)}"
+            lon_formatted = f"{lon_deg:1.0f}°{lon_min:1.3f}'{str(gps_data.lon_ref)}"
         else:
             raise ValueError(f"Unsupported format: {format}")
         # fmt: on

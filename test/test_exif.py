@@ -28,7 +28,7 @@ class TestPhrugal(unittest.TestCase):
         ]
         for img, expected in input_and_expected:
             instance = self._get_specific_img_instance(img)
-            actual = instance.get_focal_len()
+            actual = instance.get_focal_length()
             self.assertEqual(expected, actual)
             if self.ENABLE_PRINTING:
                 print(instance.image_path.stem, actual)
@@ -96,7 +96,7 @@ class TestPhrugal(unittest.TestCase):
             expected,
         ) in input_usedms_includealtitude_expected:
             instance = self._get_specific_img_instance(img)
-            actual = instance.get_gps(
+            actual = instance.get_gps_coordinates(
                 include_altitude=include_altitude, use_dms=use_dms
             )
             self.assertEqual(expected, actual)

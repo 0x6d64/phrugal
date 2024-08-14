@@ -13,7 +13,7 @@ def get_geocoder() -> Nominatim:
     return Nominatim(user_agent=USER_AGENT)
 
 
-class Gecoder:
+class Geocoder:
     GEOCODER = None
     _CALLS_MADE = 0
     MIN_DELAY_SECONDS = 1.05
