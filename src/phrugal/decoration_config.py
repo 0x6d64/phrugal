@@ -57,9 +57,9 @@ class DecorationConfig:
         for item in configured_items:
             item_name, item_config_params = item
             exif_getter_name = f"get_{item_name}"
-            if exif_getter_name not in __dict__(self.exif):
+            if not hasattr(self.exif, exif_getter_name):
                 raise ValueError(f"item {item_name} not implemented")
             getter = getattr(self.exif, exif_getter_name)
             single_fragment = getter()
             result_fragments.append(single_fragment)
-        return item_separator.join(result_fragments)
+        return item_separator.join((x for x in result_fragments if x))

@@ -6,6 +6,7 @@ from typing import Optional, Tuple
 import exifread
 from exifread.classes import IfdTag
 from exifread.utils import Ratio
+from geopy import Point
 
 from .geocode import Geocoder
 
@@ -77,7 +78,7 @@ class PhrugalExifData:
         else:
             apex = raw.values[0]
             exposure_time = 2 ** (-apex)
-            exposure_dividend = 2 ** apex
+            exposure_dividend = 2**apex
             if exposure_time < self.THRESHOLD_FRACTION_DISPLAY:
                 exposure_dividend = self._round_shutter_to_common_value(
                     float(exposure_dividend)
@@ -134,19 +135,21 @@ class PhrugalExifData:
             lat_ref,
             self._ratios_to_coordinates(lon.values) if lon else None,
             lon_ref,
-            alt
+            alt,
         )
 
     def get_gps_coordinates(
-            self, include_altitude: bool = True, use_dms: bool = True
+        self, include_altitude: bool = True, use_dms: bool = True
     ) -> str | None:
         gps_data = self._get_gps_raw()
 
-        have_gps_fix = all([gps_data.lat, gps_data.lat_ref, gps_data.lon, gps_data.lon_ref])
+        have_gps_fix = all(
+            [gps_data.lat, gps_data.lat_ref, gps_data.lon, gps_data.lon_ref]
+        )
         have_altitude = gps_data.altitude is not None
 
         if have_gps_fix:
-            gps_formatted = self._represent_gps_data(
+            gps_formatted = self._format_gps_coordinates(
                 gps_data, format="dms" if use_dms else "dds"
             )
 
@@ -157,13 +160,17 @@ class PhrugalExifData:
             return None
         return gps_formatted
 
-    def get_geocode(self):
-        pass
+    def get_geocode(self, zoom=12):
+        gps_coordinates_formatted = self.get_gps_coordinates(include_altitude=False)
+        if gps_coordinates_formatted:
+            location = Point(gps_coordinates_formatted)  # type: ignore
+            location_geocoded = self.geocoder.get_location_name_from_point(location, zoom=zoom)
+        else:
+            location_geocoded = None
+        return location_geocoded
 
     @classmethod
-    def _represent_gps_data(
-            cls, gps_data: GpsData, format: str = "dms"
-    ) -> str:
+    def _format_gps_coordinates(cls, gps_data: GpsData, format: str = "dms") -> str:
         lat_deg, lat_min, lat_sec = gps_data.lat
         lon_deg, lon_min, lon_sec = gps_data.lon
 
@@ -183,6 +190,7 @@ class PhrugalExifData:
 
     @staticmethod
     def _ratios_to_coordinates(data: list[Ratio]) -> Tuple[float, float, float]:
+        """Convert exif specific list of ratios into a tuple of degree, arc minute, arc seconds"""
         degree = float(data[0])
         minute = float(data[1])
         second = float(data[2])

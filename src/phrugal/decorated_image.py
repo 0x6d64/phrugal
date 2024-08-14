@@ -83,23 +83,33 @@ class DecoratedPhrugalImage:
         This modification is in-place.
         """
         draw = Draw(image_w_border)
+        font = self._get_font(self.font_name)
         for position in self.DECORATION_POSITIONS:
             string_to_draw = self.config.get_string_at_position(position)
             coordindates_for_draw = self._get_text_origin(position)
+            draw.text(
+                coordindates_for_draw, string_to_draw, fill=self.text_color, font=font
+            )
 
     def _get_text_origin(self, position: str) -> Coordinates:
-
         x_pos, y_pos = 0, 0
+        single_border_dims = scale_dimensions(self.get_border_dimensions(), 0.5)
         if position == "bottom_left":
-            result_string = self._get_configured_string(self.bottom_left)
+            # x_pos = single_border_dims[0] / 2
+            # y_pos = single_border_dims[1]
+            pass
         elif position == "bottom_right":
-            result_string = self._get_configured_string(self.bottom_right)
+            pass
         elif position == "top_left":
-            result_string = self._get_configured_string(self.top_left)
+            pass
         elif position == "top_right":
-            result_string = self._get_configured_string(self.top_right)
+            pass
         else:
             raise ValueError(f"Position {position} is not valid")
+        x_pos, y_pos = scale_dimensions(self.get_padded_dimensions(), 0.2)
+        import random
+        y_pos+= random.randint(0, 600)
+        x_pos+= random.randint(0, 500)
         return x_pos, y_pos
 
     def _get_minimal_border_dimensions(self) -> Dimensions:
