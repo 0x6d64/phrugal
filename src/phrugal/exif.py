@@ -44,7 +44,7 @@ class PhrugalExifData:
             )
 
     def __repr__(self):
-        return Path(self.image_path).name
+        return f"exif: {Path(self.image_path).name}"
 
     def get_focal_len(self) -> str | None:
         raw = self.exif_data.get("EXIF FocalLength", None)  # type: Optional[IfdTag]

@@ -1,9 +1,23 @@
+from pathlib import Path
+
+from .exif import PhrugalExifData
+
+
+
 class DecorationConfig:
-    def __init__(self):
+    def __init__(self, image: Path | str | None = None):
         self.bottom_left = []
         self.bottom_right = []
         self.top_left = []
         self.top_right = []
+        self.image: Path | str = image
+        self._exif: PhrugalExifData | None = None
+
+    @property
+    def exif(self):
+        if self._exif is None:
+            self._exif = PhrugalExifData(self.image)
+        return self._exif
 
     def load_default_config(self):
         """Some default values, created mostly for debug purposes."""
@@ -36,10 +50,16 @@ class DecorationConfig:
             raise ValueError(f"Position {position} is not valid")
         return result_string
 
-    def _get_configured_string(self, configured_items: list) -> str:
-        # TODO
-        result_string = ""
-        for item in configured_items:
-            pass
 
-        return result_string
+    def _get_configured_string(self, configured_items: list) -> str:
+        result_fragments = []
+        item_separator = " | "
+        for item in configured_items:
+            item_name, item_config_params = item
+            exif_getter_name = f"get_{item_name}"
+            if exif_getter_name not in __dict__(self.exif):
+                raise ValueError(f"item {item_name} not implemented")
+            getter = getattr(self.exif, exif_getter_name)
+            single_fragment = getter()
+            result_fragments.append(single_fragment)
+        return item_separator.join(result_fragments)

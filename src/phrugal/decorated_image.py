@@ -8,7 +8,7 @@ from PIL.ImageFont import truetype
 
 from .decoration_config import DecorationConfig
 from .image import PhrugalImage
-from .types import ColorTuple, Dimensions
+from .types import ColorTuple, Dimensions, Coordinates
 
 
 def add_dimensions(a: Dimensions, b: Dimensions) -> Dimensions:
@@ -16,6 +16,13 @@ def add_dimensions(a: Dimensions, b: Dimensions) -> Dimensions:
     a_x, a_y = a
     b_x, b_y = b
     return int(a_x + b_x), int(a_y + b_y)
+
+
+def subtract_dimensions(a: Dimensions, b: Dimensions) -> Dimensions:
+    assert len(a) == len(b) == 2
+    a_x, a_y = a
+    b_x, b_y = b
+    return int(a_x - b_x), int(a_y - b_y)
 
 
 def scale_dimensions(d: Dimensions, scale: float) -> Dimensions:
@@ -33,6 +40,7 @@ class DecoratedPhrugalImage:
     BORDER_MULTIPLIER = 1.0
     NOMINAL_LEN_LARGER_SIDE_MM = 130.0
     DESIRED_BORDER_WIDTH_BASE_MM = 5.0
+    DECORATION_POSITIONS = ["bottom_left", "bottom_right", "top_left", "top_right"]
 
     def __init__(
         self,
@@ -75,6 +83,24 @@ class DecoratedPhrugalImage:
         This modification is in-place.
         """
         draw = Draw(image_w_border)
+        for position in self.DECORATION_POSITIONS:
+            string_to_draw = self.config.get_string_at_position(position)
+            coordindates_for_draw = self._get_text_origin(position)
+
+    def _get_text_origin(self, position: str) -> Coordinates:
+
+        x_pos, y_pos = 0, 0
+        if position == "bottom_left":
+            result_string = self._get_configured_string(self.bottom_left)
+        elif position == "bottom_right":
+            result_string = self._get_configured_string(self.bottom_right)
+        elif position == "top_left":
+            result_string = self._get_configured_string(self.top_left)
+        elif position == "top_right":
+            result_string = self._get_configured_string(self.top_right)
+        else:
+            raise ValueError(f"Position {position} is not valid")
+        return x_pos, y_pos
 
     def _get_minimal_border_dimensions(self) -> Dimensions:
         x_dim_original, y_dim_original = self.base_image.image_dims
