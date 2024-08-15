@@ -1,3 +1,4 @@
+import itertools
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
@@ -27,22 +28,22 @@ class TestBorderDecorator(TestCase):
 
     def test_get_padded_dimensions(self):
         base_images = [
-            (self.img_path_square, None),
-            # (self.img_path_landscape_regular, None),
-            # (self.img_path_landscape_extreme, None),
-            # (self.img_path_portrait_regular, None),
-            # (self.img_path_portrait_extreme, None),
+            self.img_path_square,
+            self.img_path_landscape_regular,
+            self.img_path_landscape_extreme,
+            self.img_path_portrait_regular,
+            self.img_path_portrait_extreme,
         ]
         # fmt: off
         target_aspect_ratios = [
-            # 1.0,
+            1.0,
             4.0 / 3.0,
             0.5
         ]
         # fmt: on
 
-        for t_ar in target_aspect_ratios:
-            for bi, expectation in base_images:
+        for t_ar, bi in itertools.product(target_aspect_ratios, base_images):
+            with self.subTest(f" target ratio: {t_ar:1.3f}, img: {bi}"):
                 base_img = PhrugalImage(bi)
                 decorator = DecoratedPhrugalImage(base_img, target_aspect_ratio=t_ar)
                 padded_dimensions = decorator.get_padded_dimensions()
