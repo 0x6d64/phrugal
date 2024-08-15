@@ -1,7 +1,7 @@
 import datetime
 from collections import namedtuple
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Iterable
 
 import exifread
 from exifread.classes import IfdTag
@@ -117,6 +117,19 @@ class PhrugalExifData:
         else:
             return str(raw)
 
+    def get_image_xp_title(self) -> str:
+        raw = self.exif_data.get("Image XPTitle", None)
+        return self._get_str_from_utf16(raw.values) if raw else None
+
+    def get_image_xp_description(self) -> str:
+        raw = self.exif_data.get("Image XPSubject", None)
+        return self._get_str_from_utf16(raw.values) if raw else None
+
+    @staticmethod
+    def _get_str_from_utf16(values: Iterable) -> str:
+        decoded = bytes(values).decode("utf-16")
+        return decoded.rstrip("\x00")
+
     def get_timestamp(self) -> datetime.datetime | None:
         raw = self.exif_data.get("EXIF DateTimeOriginal", None)
         if raw is None:
@@ -164,7 +177,9 @@ class PhrugalExifData:
         gps_coordinates_formatted = self.get_gps_coordinates(include_altitude=False)
         if gps_coordinates_formatted:
             location = Point(gps_coordinates_formatted)  # type: ignore
-            location_geocoded = self.geocoder.get_location_name_from_point(location, zoom=zoom)
+            location_geocoded = self.geocoder.get_location_name_from_point(
+                location, zoom=zoom
+            )
         else:
             location_geocoded = None
         return location_geocoded

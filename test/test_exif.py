@@ -126,3 +126,15 @@ class TestPhrugal(unittest.TestCase):
 
             if self.ENABLE_PRINTING:
                 print(ped.image_path.stem, actual)
+
+    def test_get_image_xp_title(self):
+        instance = self._get_specific_img_instance("21.37.27")
+        actual = instance.get_image_xp_title()
+        expected = "train station"
+        self.assertEqual(expected, actual)
+
+    def test_get_image_xp_description(self):
+        instance = self._get_specific_img_instance("21.37.27")
+        actual = instance.get_image_xp_description()
+        expected = "Sibiu train station"
+        self.assertEqual(expected, actual)
