@@ -4,7 +4,7 @@ from typing import Optional
 import PIL.Image as PilImage
 from PIL.ImageColor import getrgb
 from PIL.ImageDraw import Draw
-from PIL.ImageFont import truetype
+from PIL.ImageFont import truetype, FreeTypeFont
 
 from .decoration_config import DecorationConfig
 from .image import PhrugalImage
@@ -85,32 +85,44 @@ class DecoratedPhrugalImage:
         draw = Draw(image_w_border)
         font = self._get_font(self.font_name)
         for corner in self.CORNER_NAMES:
+            text_on_right_side = corner.endswith("_right")
+            # see https://pillow.readthedocs.io/en/stable/handbook/text-anchors.html#specifying-an-anchor
+            text_anchor = "rd" if text_on_right_side else "ld"
+
             string_to_draw = self.config.get_string_at_corner(corner)
             coordindates_for_draw = self._get_text_origin(corner)
             draw.text(
-                coordindates_for_draw, string_to_draw, fill=self.text_color, font=font
+                coordindates_for_draw,
+                string_to_draw,
+                fill=self.text_color,
+                font=font,
+                anchor=text_anchor,
             )
 
     def _get_text_origin(self, corner: str) -> Coordinates:
-        x_pos, y_pos = 0, 0
+        font_size = self.get_font_size()
         single_border_dims = scale_dimensions(self.get_border_dimensions(), 0.5)
+        single_x_border, single_y_border = single_border_dims
+
+        border_text_to_edge = (min(*single_border_dims) - font_size) / 2
+        image_x_dim, image_y_dim = self.base_image.image_dims
+
         if corner == "bottom_left":
-            # x_pos = single_border_dims[0] / 2
-            # y_pos = single_border_dims[1]
-            pass
+            x_pos = single_x_border + border_text_to_edge
+            y_pos = 2 * single_y_border + image_y_dim - border_text_to_edge
         elif corner == "bottom_right":
-            pass
+            x_pos = single_x_border + image_x_dim - border_text_to_edge
+            y_pos = 2 * single_y_border + image_y_dim - border_text_to_edge
         elif corner == "top_left":
+            x_pos = single_x_border + border_text_to_edge
+            y_pos = single_y_border - border_text_to_edge
             pass
         elif corner == "top_right":
+            x_pos = single_x_border + image_x_dim - border_text_to_edge
+            y_pos = single_y_border - border_text_to_edge
             pass
         else:
             raise ValueError(f"Corner name {corner} is not valid")
-        x_pos, y_pos = scale_dimensions(self.get_padded_dimensions(), 0.2)
-        import random
-
-        y_pos += random.randint(0, 600)
-        x_pos += random.randint(0, 500)
         return x_pos, y_pos
 
     def _get_minimal_border_dimensions(self) -> Dimensions:
@@ -211,7 +223,7 @@ class DecoratedPhrugalImage:
     #         font = ImageFont.truetype(decoration.font, size=font_size)
     #     return font
 
-    def _get_font(self, font_name: str, font_size: int | None = None) -> str:
+    def _get_font(self, font_name: str, font_size: int | None = None) -> FreeTypeFont:
         if font_size is None:
             font_size = self.get_font_size()
         if (font_name, font_size) in self.FONT_CACHE:
