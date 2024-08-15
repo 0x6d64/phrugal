@@ -35,6 +35,7 @@ class DecorationConfig:
         ]
         self.top_right = [
             ("geocode", {"zoom": 12}),
+            ("timestamp", {"format": "%Y:%m:%d %H:%M:%S"}),
         ]
 
     def get_string_at_corner(self, corner: str) -> str:

@@ -46,7 +46,7 @@ class PhrugalExifData:
         self.image_path = image_path
         with open(image_path, "rb") as fp:
             self.exif_data = exifread.process_file(
-                fp, debug=self.EXTRACT_APPLICATION_NOTES
+                fp, debug=self.EXTRACT_APPLICATION_NOTES  # type: ignore
             )
         self.geocoder = Geocoder()
 
@@ -62,7 +62,7 @@ class PhrugalExifData:
             return f"{value:1.0f}mm"
 
     def get_aperture(self) -> str | None:
-        raw = self.exif_data.get("EXIF ApertureValue", None)
+        raw = self.exif_data.get("EXIF ApertureValue", None)  # type: Optional[IfdTag]
         if raw is None:
             return None
         else:
@@ -72,7 +72,9 @@ class PhrugalExifData:
             return f"f/{value:.1f}"
 
     def get_shutter_speed(self) -> str | None:
-        raw = self.exif_data.get("EXIF ShutterSpeedValue", None)
+        raw = self.exif_data.get(
+            "EXIF ShutterSpeedValue", None
+        )  # type: Optional[IfdTag]
         if raw is None:
             return None
         else:
@@ -89,7 +91,7 @@ class PhrugalExifData:
                 return f"{exposure_time:.1f}s"
 
     def get_iso(self) -> str | None:
-        raw = self.exif_data.get("EXIF ISOSpeedRatings", None)
+        raw = self.exif_data.get("EXIF ISOSpeedRatings", None)  # type: Optional[IfdTag]
         if raw is None:
             return None
         else:
@@ -118,11 +120,11 @@ class PhrugalExifData:
             return str(raw)
 
     def get_image_xp_title(self) -> str:
-        raw = self.exif_data.get("Image XPTitle", None)
+        raw = self.exif_data.get("Image XPTitle", None)  # type: Optional[IfdTag]
         return self._get_str_from_utf16(raw.values) if raw else None
 
     def get_image_xp_description(self) -> str:
-        raw = self.exif_data.get("Image XPSubject", None)
+        raw = self.exif_data.get("Image XPSubject", None)  # type: Optional[IfdTag]
         return self._get_str_from_utf16(raw.values) if raw else None
 
     @staticmethod
@@ -130,19 +132,24 @@ class PhrugalExifData:
         decoded = bytes(values).decode("utf-16")
         return decoded.rstrip("\x00")
 
-    def get_timestamp(self) -> datetime.datetime | None:
+    def get_timestamp(self, format: str = "%Y:%m:%d %H:%M") -> str:
+        ts_raw = self._get_timestamp_raw()
+        return ts_raw.strftime(format) if ts_raw else None
+
+    def _get_timestamp_raw(self) -> datetime.datetime | None:
         raw = self.exif_data.get("EXIF DateTimeOriginal", None)
         if raw is None:
             return None
         else:
-            return datetime.datetime.strptime(str(raw), "%Y:%m:%d %H:%M:%S")
+            exif_ts_format = "%Y:%m:%d %H:%M:%S"
+            return datetime.datetime.strptime(str(raw), exif_ts_format)
 
     def _get_gps_raw(self) -> GpsData:
-        lat = self.exif_data.get("GPS GPSLatitude", None)
+        lat = self.exif_data.get("GPS GPSLatitude", None)  # type: Optional[IfdTag]
         lat_ref = self.exif_data.get("GPS GPSLatitudeRef", None)
-        lon = self.exif_data.get("GPS GPSLongitude", None)
+        lon = self.exif_data.get("GPS GPSLongitude", None)  # type: Optional[IfdTag]
         lon_ref = self.exif_data.get("GPS GPSLongitudeRef", None)
-        alt = self.exif_data.get("GPS GPSAltitude", None)
+        alt = self.exif_data.get("GPS GPSAltitude", None)  # type: Optional[IfdTag]
         return GpsData(
             self._ratios_to_coordinates(lat.values) if lat else None,
             lat_ref,

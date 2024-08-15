@@ -75,7 +75,7 @@ class TestPhrugal(unittest.TestCase):
 
     def test_get_timestamp(self):
         instance = self._get_specific_img_instance("0027")
-        actual = instance.get_timestamp()
+        actual = instance._get_timestamp_raw()
         expected = datetime(2024, 7, 29, 18, 36, 10)
         self.assertEqual(expected, actual)
 
