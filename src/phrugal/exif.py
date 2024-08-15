@@ -180,7 +180,6 @@ class PhrugalExifData:
         raw = self.exif_data.get("EXIF LensModel", None)  # type: Optional[IfdTag]
         return str(raw.values) if raw else None
 
-
     @classmethod
     def _format_gps_coordinates(cls, gps_data: GpsData, format: str = "dms") -> str:
         lat_deg, lat_min, lat_sec = gps_data.lat

@@ -7,6 +7,7 @@ from PIL.ImageDraw import Draw
 from PIL.ImageFont import truetype, FreeTypeFont
 
 from .decoration_config import DecorationConfig
+from .exif import PhrugalExifData
 from .image import PhrugalImage
 from .types import ColorTuple, Dimensions, Coordinates
 
@@ -59,6 +60,13 @@ class DecoratedPhrugalImage:
             target_aspect_ratio if target_aspect_ratio else Fraction(3, 2)
         )
         self.config = decoration_config
+        self._exif = None  # type: PhrugalExifData | None
+
+    @property
+    def exif(self):
+        if self._exif is None:
+            self._exif = PhrugalExifData(self.base_image.file_name)
+        return self._exif
 
     def get_decorated_image(self) -> PilImage.Image:
         needs_rotation = self.base_image.aspect_ratio < 1
@@ -89,7 +97,7 @@ class DecoratedPhrugalImage:
             # see https://pillow.readthedocs.io/en/stable/handbook/text-anchors.html#specifying-an-anchor
             text_anchor = "rd" if text_on_right_side else "ld"
 
-            string_to_draw = self.config.get_string_at_corner(corner)
+            string_to_draw = self.config.get_string_at_corner(self.exif, corner)
             coordindates_for_draw = self._get_text_origin(corner)
             draw.text(
                 coordindates_for_draw,

@@ -5,6 +5,7 @@ from typing import Iterable
 from PIL.Image import Image
 
 from phrugal.decorated_image import DecoratedPhrugalImage
+from phrugal.decoration_config import DecorationConfig
 from phrugal.image import PhrugalImage
 
 
@@ -15,18 +16,19 @@ class ImageComposition:
         self.images = images
         self.target_aspect_ratio = target_aspect_ratio
 
-    def write_composition(self, filename: Path):
-        decorated_images = self._get_decorated_images()
+    def write_composition(self, filename: Path, decoration_config: DecorationConfig):
+        decorated_images = self._get_decorated_images(decoration_config)
         # TODO: arrange images into new image
         # TODO: write images out
 
-    def _get_decorated_images(self) -> Iterable[Image]:
+    def _get_decorated_images(self, config: DecorationConfig) -> Iterable[Image]:
         decorated_images = []
         for image in self.images:
-            decorator = DecoratedPhrugalImage(
+            img_decorated = DecoratedPhrugalImage(
                 image, target_aspect_ratio=self.target_aspect_ratio
             )
-            decorated_images.append(decorator.get_decorated_image())
+            img_decorated.config = config
+            decorated_images.append(img_decorated.get_decorated_image())
         return decorated_images
 
     def close_images(self):

@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import List, Tuple, TypeVar
 
 from phrugal.composition import ImageComposition
+from phrugal.decoration_config import DecorationConfig
 from phrugal.image import PhrugalImage
 
 T = TypeVar("T")
@@ -13,9 +14,11 @@ class PhrugalComposer:
 
     def __init__(
         self,
+        decoration_config: DecorationConfig,
         input_files=None,
         target_aspect_ratio: Fraction | float = DEFAULT_ASPECT_RATIO,
     ):
+        self.decoration_config = decoration_config
         self.input_files = input_files
         self._img_instances = []
         self.target_aspect_ratio = Fraction(target_aspect_ratio)
@@ -56,7 +59,9 @@ class PhrugalComposer:
             composition = ImageComposition(
                 group, target_aspect_ratio=self.target_aspect_ratio
             )
-            composition.write_composition(filename=composition_filename)
+            composition.write_composition(
+                filename=composition_filename, decoration_config=self.decoration_config
+            )
         print(img_groups)
 
     def discover_images(self, path):
