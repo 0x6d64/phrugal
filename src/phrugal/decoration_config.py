@@ -22,9 +22,11 @@ class DecorationConfig:
     def load_default_config(self):
         """Some default values, created mostly for debug purposes."""
         self.bottom_left = [
+            # ("camera_model", {}),
+            # ("lens_model", {}),
             ("focal_length", {}),
             ("aperture", {}),
-            ("shutter_speed", {}),
+            ("shutter_speed", {"use_nominal_value": True}),
             ("iso", {}),
         ]
         self.bottom_right = [
@@ -34,8 +36,8 @@ class DecorationConfig:
             ("description", None),
         ]
         self.top_right = [
+            ("timestamp", {"format": "%Y-%m-%dT%H:%M"}),
             ("geocode", {"zoom": 12}),
-            ("timestamp", {"format": "%Y:%m:%d %H:%M:%S"}),
         ]
 
     def get_string_at_corner(self, corner: str) -> str:
