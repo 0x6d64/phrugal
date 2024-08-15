@@ -71,7 +71,14 @@ class PhrugalExifData:
                 return str(self.INF_APERTURE_REPRESENTATION)
             return f"f/{value:.1f}"
 
-    def get_shutter_speed(self) -> str | None:
+    def get_shutter_speed(self, use_nominal_value: bool = True) -> str | None:
+        """Return the shutter speed/
+
+        :param use_nominal_value: if set, round the values to nominal values (instead of the more
+                                  precise, recorded values. See also
+                                  https://www.scantips.com/lights/fstop2.html.
+        :return: formatted string
+        """
         raw = self.exif_data.get(
             "EXIF ShutterSpeedValue", None
         )  # type: Optional[IfdTag]
@@ -82,9 +89,10 @@ class PhrugalExifData:
             exposure_time = 2 ** (-apex)
             exposure_dividend = 2**apex
             if exposure_time < self.THRESHOLD_FRACTION_DISPLAY:
-                exposure_dividend = self._round_shutter_to_common_value(
-                    float(exposure_dividend)
-                )
+                if use_nominal_value:
+                    exposure_dividend = self._round_shutter_to_common_value(
+                        float(exposure_dividend)
+                    )
                 div_rounded = int(exposure_dividend)
                 return f"1/{div_rounded}s"
             else:
@@ -127,36 +135,9 @@ class PhrugalExifData:
         raw = self.exif_data.get("Image XPSubject", None)  # type: Optional[IfdTag]
         return self._get_str_from_utf16(raw.values) if raw else None
 
-    @staticmethod
-    def _get_str_from_utf16(values: Iterable) -> str:
-        decoded = bytes(values).decode("utf-16")
-        return decoded.rstrip("\x00")
-
     def get_timestamp(self, format: str = "%Y:%m:%d %H:%M") -> str:
         ts_raw = self._get_timestamp_raw()
         return ts_raw.strftime(format) if ts_raw else None
-
-    def _get_timestamp_raw(self) -> datetime.datetime | None:
-        raw = self.exif_data.get("EXIF DateTimeOriginal", None)
-        if raw is None:
-            return None
-        else:
-            exif_ts_format = "%Y:%m:%d %H:%M:%S"
-            return datetime.datetime.strptime(str(raw), exif_ts_format)
-
-    def _get_gps_raw(self) -> GpsData:
-        lat = self.exif_data.get("GPS GPSLatitude", None)  # type: Optional[IfdTag]
-        lat_ref = self.exif_data.get("GPS GPSLatitudeRef", None)
-        lon = self.exif_data.get("GPS GPSLongitude", None)  # type: Optional[IfdTag]
-        lon_ref = self.exif_data.get("GPS GPSLongitudeRef", None)
-        alt = self.exif_data.get("GPS GPSAltitude", None)  # type: Optional[IfdTag]
-        return GpsData(
-            self._ratios_to_coordinates(lat.values) if lat else None,
-            lat_ref,
-            self._ratios_to_coordinates(lon.values) if lon else None,
-            lon_ref,
-            alt,
-        )
 
     def get_gps_coordinates(
         self, include_altitude: bool = True, use_dms: bool = True
@@ -237,3 +218,30 @@ class PhrugalExifData:
             return dividend
         else:
             return closest_common_value
+
+    @staticmethod
+    def _get_str_from_utf16(values: Iterable) -> str:
+        decoded = bytes(values).decode("utf-16")
+        return decoded.rstrip("\x00")
+
+    def _get_timestamp_raw(self) -> datetime.datetime | None:
+        raw = self.exif_data.get("EXIF DateTimeOriginal", None)
+        if raw is None:
+            return None
+        else:
+            exif_ts_format = "%Y:%m:%d %H:%M:%S"
+            return datetime.datetime.strptime(str(raw), exif_ts_format)
+
+    def _get_gps_raw(self) -> GpsData:
+        lat = self.exif_data.get("GPS GPSLatitude", None)  # type: Optional[IfdTag]
+        lat_ref = self.exif_data.get("GPS GPSLatitudeRef", None)
+        lon = self.exif_data.get("GPS GPSLongitude", None)  # type: Optional[IfdTag]
+        lon_ref = self.exif_data.get("GPS GPSLongitudeRef", None)
+        alt = self.exif_data.get("GPS GPSAltitude", None)  # type: Optional[IfdTag]
+        return GpsData(
+            self._ratios_to_coordinates(lat.values) if lat else None,
+            lat_ref,
+            self._ratios_to_coordinates(lon.values) if lon else None,
+            lon_ref,
+            alt,
+        )
