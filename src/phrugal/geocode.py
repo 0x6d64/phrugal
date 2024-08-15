@@ -17,6 +17,7 @@ class Geocoder:
     GEOCODER = None
     _CALLS_MADE = 0
     MIN_DELAY_SECONDS = 1.05
+    DEFAULT_ZOOM = 12
 
     def __init__(self):
         if self.GEOCODER is None:
@@ -26,7 +27,9 @@ class Geocoder:
             )
 
     @cache
-    def get_location_name(self, lat: float, lon: float, zoom: int = 12) -> str:
+    def get_location_name(
+        self, lat: float, lon: float, zoom: int = DEFAULT_ZOOM
+    ) -> str:
         """Returns a name for given coordinates
 
         Note: The selection of the values that are returned and omitted are highly subjective.
@@ -41,7 +44,7 @@ class Geocoder:
         loc = Point(lat, lon)
         return self.get_location_name_from_point(loc, zoom=zoom)
 
-    def get_location_name_from_point(self, loc: Point, zoom) -> str:
+    def get_location_name_from_point(self, loc: Point, zoom: int = DEFAULT_ZOOM) -> str:
         answer = self._reverse_rate_limited(loc, exactly_one=True, zoom=zoom)
         self._CALLS_MADE += 1
         address_dict = answer.raw["address"]
