@@ -3,7 +3,6 @@ from pathlib import Path
 from .exif import PhrugalExifData
 
 
-
 class DecorationConfig:
     def __init__(self, image: Path | str | None = None):
         self.bottom_left = []
@@ -37,19 +36,18 @@ class DecorationConfig:
             ("geocode", {"zoom": 12}),
         ]
 
-    def get_string_at_position(self, position: str) -> str:
-        if position == "bottom_left":
+    def get_string_at_corner(self, corner: str) -> str:
+        if corner == "bottom_left":
             result_string = self._get_configured_string(self.bottom_left)
-        elif position == "bottom_right":
+        elif corner == "bottom_right":
             result_string = self._get_configured_string(self.bottom_right)
-        elif position == "top_left":
+        elif corner == "top_left":
             result_string = self._get_configured_string(self.top_left)
-        elif position == "top_right":
+        elif corner == "top_right":
             result_string = self._get_configured_string(self.top_right)
         else:
-            raise ValueError(f"Position {position} is not valid")
+            raise ValueError(f"Corner name {corner} is not valid")
         return result_string
-
 
     def _get_configured_string(self, configured_items: list) -> str:
         result_fragments = []

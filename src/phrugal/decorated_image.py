@@ -40,7 +40,7 @@ class DecoratedPhrugalImage:
     BORDER_MULTIPLIER = 1.0
     NOMINAL_LEN_LARGER_SIDE_MM = 130.0
     DESIRED_BORDER_WIDTH_BASE_MM = 5.0
-    DECORATION_POSITIONS = ["bottom_left", "bottom_right", "top_left", "top_right"]
+    CORNER_NAMES = ["bottom_left", "bottom_right", "top_left", "top_right"]
 
     def __init__(
         self,
@@ -84,32 +84,33 @@ class DecoratedPhrugalImage:
         """
         draw = Draw(image_w_border)
         font = self._get_font(self.font_name)
-        for position in self.DECORATION_POSITIONS:
-            string_to_draw = self.config.get_string_at_position(position)
-            coordindates_for_draw = self._get_text_origin(position)
+        for corner in self.CORNER_NAMES:
+            string_to_draw = self.config.get_string_at_corner(corner)
+            coordindates_for_draw = self._get_text_origin(corner)
             draw.text(
                 coordindates_for_draw, string_to_draw, fill=self.text_color, font=font
             )
 
-    def _get_text_origin(self, position: str) -> Coordinates:
+    def _get_text_origin(self, corner: str) -> Coordinates:
         x_pos, y_pos = 0, 0
         single_border_dims = scale_dimensions(self.get_border_dimensions(), 0.5)
-        if position == "bottom_left":
+        if corner == "bottom_left":
             # x_pos = single_border_dims[0] / 2
             # y_pos = single_border_dims[1]
             pass
-        elif position == "bottom_right":
+        elif corner == "bottom_right":
             pass
-        elif position == "top_left":
+        elif corner == "top_left":
             pass
-        elif position == "top_right":
+        elif corner == "top_right":
             pass
         else:
-            raise ValueError(f"Position {position} is not valid")
+            raise ValueError(f"Corner name {corner} is not valid")
         x_pos, y_pos = scale_dimensions(self.get_padded_dimensions(), 0.2)
         import random
-        y_pos+= random.randint(0, 600)
-        x_pos+= random.randint(0, 500)
+
+        y_pos += random.randint(0, 600)
+        x_pos += random.randint(0, 500)
         return x_pos, y_pos
 
     def _get_minimal_border_dimensions(self) -> Dimensions:
