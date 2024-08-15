@@ -13,10 +13,11 @@ def get_geocoder() -> Nominatim:
     return Nominatim(user_agent=USER_AGENT)
 
 
-class Gecoder:
+class Geocoder:
     GEOCODER = None
     _CALLS_MADE = 0
     MIN_DELAY_SECONDS = 1.05
+    DEFAULT_ZOOM = 12
 
     def __init__(self):
         if self.GEOCODER is None:
@@ -27,7 +28,7 @@ class Gecoder:
 
     @cache
     def get_location_name(
-        self, lat: float, lon: float, alt: float = 0.0, zoom: int = 12
+        self, lat: float, lon: float, zoom: int = DEFAULT_ZOOM
     ) -> str:
         """Returns a name for given coordinates
 
@@ -37,11 +38,13 @@ class Gecoder:
 
         :param lat: latitude
         :param lon: longitude
-        :param alt: altitude
         :param zoom: zoom level, see https://nominatim.org/release-docs/develop/api/Reverse/#result-restriction
         :return: formatted location name
         """
-        loc = Point(lat, lon, alt)
+        loc = Point(lat, lon)
+        return self.get_location_name_from_point(loc, zoom=zoom)
+
+    def get_location_name_from_point(self, loc: Point, zoom: int = DEFAULT_ZOOM) -> str:
         answer = self._reverse_rate_limited(loc, exactly_one=True, zoom=zoom)
         self._CALLS_MADE += 1
         address_dict = answer.raw["address"]

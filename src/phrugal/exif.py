@@ -1,10 +1,16 @@
 import datetime
+from collections import namedtuple
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Iterable
 
 import exifread
 from exifread.classes import IfdTag
 from exifread.utils import Ratio
+from geopy import Point
+
+from .geocode import Geocoder
+
+GpsData = namedtuple("GpsData", ["lat", "lat_ref", "lon", "lon_ref", "altitude"])
 
 
 def get_common_values() -> list[float]:
@@ -40,13 +46,14 @@ class PhrugalExifData:
         self.image_path = image_path
         with open(image_path, "rb") as fp:
             self.exif_data = exifread.process_file(
-                fp, debug=self.EXTRACT_APPLICATION_NOTES
+                fp, debug=self.EXTRACT_APPLICATION_NOTES  # type: ignore
             )
+        self.geocoder = Geocoder()
 
     def __repr__(self):
-        return Path(self.image_path).name
+        return f"exif: {Path(self.image_path).name}"
 
-    def get_focal_len(self) -> str | None:
+    def get_focal_length(self) -> str | None:
         raw = self.exif_data.get("EXIF FocalLength", None)  # type: Optional[IfdTag]
         if raw is None:
             return None
@@ -55,7 +62,7 @@ class PhrugalExifData:
             return f"{value:1.0f}mm"
 
     def get_aperture(self) -> str | None:
-        raw = self.exif_data.get("EXIF ApertureValue", None)
+        raw = self.exif_data.get("EXIF ApertureValue", None)  # type: Optional[IfdTag]
         if raw is None:
             return None
         else:
@@ -64,8 +71,17 @@ class PhrugalExifData:
                 return str(self.INF_APERTURE_REPRESENTATION)
             return f"f/{value:.1f}"
 
-    def get_shutter_speed(self) -> str | None:
-        raw = self.exif_data.get("EXIF ShutterSpeedValue", None)
+    def get_shutter_speed(self, use_nominal_value: bool = True) -> str | None:
+        """Return the shutter speed/
+
+        :param use_nominal_value: if set, round the values to nominal values (instead of the more
+                                  precise, recorded values. See also
+                                  https://www.scantips.com/lights/fstop2.html.
+        :return: formatted string
+        """
+        raw = self.exif_data.get(
+            "EXIF ShutterSpeedValue", None
+        )  # type: Optional[IfdTag]
         if raw is None:
             return None
         else:
@@ -73,16 +89,17 @@ class PhrugalExifData:
             exposure_time = 2 ** (-apex)
             exposure_dividend = 2**apex
             if exposure_time < self.THRESHOLD_FRACTION_DISPLAY:
-                exposure_dividend = self._round_shutter_to_common_value(
-                    float(exposure_dividend)
-                )
+                if use_nominal_value:
+                    exposure_dividend = self._round_shutter_to_common_value(
+                        float(exposure_dividend)
+                    )
                 div_rounded = int(exposure_dividend)
                 return f"1/{div_rounded}s"
             else:
                 return f"{exposure_time:.1f}s"
 
     def get_iso(self) -> str | None:
-        raw = self.exif_data.get("EXIF ISOSpeedRatings", None)
+        raw = self.exif_data.get("EXIF ISOSpeedRatings", None)  # type: Optional[IfdTag]
         if raw is None:
             return None
         else:
@@ -110,54 +127,73 @@ class PhrugalExifData:
         else:
             return str(raw)
 
-    def get_timestamp(self) -> datetime.datetime | None:
-        raw = self.exif_data.get("EXIF DateTimeOriginal", None)
-        if raw is None:
-            return None
-        else:
-            return datetime.datetime.strptime(raw, "%Y:%m:%d %H:%M:%S")
+    def get_image_xp_title(self) -> str:
+        raw = self.exif_data.get("Image XPTitle", None)  # type: Optional[IfdTag]
+        return self._get_str_from_utf16(raw.values) if raw else None
 
-    def get_gps(
+    def get_image_xp_description(self) -> str:
+        raw = self.exif_data.get("Image XPSubject", None)  # type: Optional[IfdTag]
+        return self._get_str_from_utf16(raw.values) if raw else None
+
+    def get_timestamp(self, format: str = "%Y:%m:%d %H:%M") -> str:
+        ts_raw = self._get_timestamp_raw()
+        return ts_raw.strftime(format) if ts_raw else None
+
+    def get_gps_coordinates(
         self, include_altitude: bool = True, use_dms: bool = True
     ) -> str | None:
-        lat = self.exif_data.get("GPS GPSLatitude", None)
-        lat_ref = self.exif_data.get("GPS GPSLatitudeRef", None)
-        long = self.exif_data.get("GPS GPSLongitude", None)
-        long_ref = self.exif_data.get("GPS GPSLongitudeRef", None)
-        alt = self.exif_data.get("GPS GPSAltitude", None)
+        gps_data = self._get_gps_raw()
 
-        have_gps_fix = all([lat, lat_ref, long, long_ref])
-        have_altitude = alt is not None
+        have_gps_fix = all(
+            [gps_data.lat, gps_data.lat_ref, gps_data.lon, gps_data.lon_ref]
+        )
+        have_altitude = gps_data.altitude is not None
 
         if have_gps_fix:
-            gps_formatted = self._represent_gps_data(
-                lat, lat_ref, long, long_ref, format="dms" if use_dms else "dds"
+            gps_formatted = self._format_gps_coordinates(
+                gps_data, format="dms" if use_dms else "dds"
             )
 
             if have_altitude and include_altitude:
-                altidue_value = float(alt.values[0])
+                altidue_value = float(gps_data.altitude.values[0])
                 gps_formatted += f", {altidue_value:1.0f}m"
         else:
             return None
-
         return gps_formatted
 
+    def get_geocode(self, zoom=12):
+        gps_coordinates_formatted = self.get_gps_coordinates(include_altitude=False)
+        if gps_coordinates_formatted:
+            location = Point(gps_coordinates_formatted)  # type: ignore
+            location_geocoded = self.geocoder.get_location_name_from_point(
+                location, zoom=zoom
+            )
+        else:
+            location_geocoded = None
+        return location_geocoded
+
+    def get_camera_model(self):
+        raw = self.exif_data.get("Image Model", None)  # type: Optional[IfdTag]
+        return str(raw.values) if raw else None
+
+    def get_lens_model(self):
+        raw = self.exif_data.get("EXIF LensModel", None)  # type: Optional[IfdTag]
+        return str(raw.values) if raw else None
+
     @classmethod
-    def _represent_gps_data(
-        cls, lat: list, lat_ref, lon: list, lon_ref, format: str = "dms"
-    ) -> str:
-        lat_deg, lat_min, lat_sec = cls._ratios_to_coordinates(lat.values)
-        lon_deg, lon_min, lon_sec = cls._ratios_to_coordinates(lon.values)
+    def _format_gps_coordinates(cls, gps_data: GpsData, format: str = "dms") -> str:
+        lat_deg, lat_min, lat_sec = gps_data.lat
+        lon_deg, lon_min, lon_sec = gps_data.lon
 
         # fmt: off
         if format == "dms":  # degree, minute, second
-            lat_formatted = f"{lat_deg:1.0f}°{lat_min:1.0f}'{lat_sec:1.1f}\"{str(lat_ref)}"
-            lon_formatted = f"{lon_deg:1.0f}°{lon_min:1.0f}'{lon_sec:1.1f}\"{str(lon_ref)}"
+            lat_formatted = f"{lat_deg:1.0f}°{lat_min:1.0f}'{lat_sec:1.1f}\"{str(gps_data.lat_ref)}"
+            lon_formatted = f"{lon_deg:1.0f}°{lon_min:1.0f}'{lon_sec:1.1f}\"{str(gps_data.lon_ref)}"
         elif format == "dds":  # degree, decimal minute
             lat_min += lat_sec / 60
             lon_min += lon_sec / 60
-            lat_formatted = f"{lat_deg:1.0f}°{lat_min:1.3f}'{str(lat_ref)}"
-            lon_formatted = f"{lon_deg:1.0f}°{lon_min:1.3f}'{str(lon_ref)}"
+            lat_formatted = f"{lat_deg:1.0f}°{lat_min:1.3f}'{str(gps_data.lat_ref)}"
+            lon_formatted = f"{lon_deg:1.0f}°{lon_min:1.3f}'{str(gps_data.lon_ref)}"
         else:
             raise ValueError(f"Unsupported format: {format}")
         # fmt: on
@@ -165,6 +201,7 @@ class PhrugalExifData:
 
     @staticmethod
     def _ratios_to_coordinates(data: list[Ratio]) -> Tuple[float, float, float]:
+        """Convert exif specific list of ratios into a tuple of degree, arc minute, arc seconds"""
         degree = float(data[0])
         minute = float(data[1])
         second = float(data[2])
@@ -189,3 +226,30 @@ class PhrugalExifData:
             return dividend
         else:
             return closest_common_value
+
+    @staticmethod
+    def _get_str_from_utf16(values: Iterable) -> str:
+        decoded = bytes(values).decode("utf-16")
+        return decoded.rstrip("\x00")
+
+    def _get_timestamp_raw(self) -> datetime.datetime | None:
+        raw = self.exif_data.get("EXIF DateTimeOriginal", None)
+        if raw is None:
+            return None
+        else:
+            exif_ts_format = "%Y:%m:%d %H:%M:%S"
+            return datetime.datetime.strptime(str(raw), exif_ts_format)
+
+    def _get_gps_raw(self) -> GpsData:
+        lat = self.exif_data.get("GPS GPSLatitude", None)  # type: Optional[IfdTag]
+        lat_ref = self.exif_data.get("GPS GPSLatitudeRef", None)
+        lon = self.exif_data.get("GPS GPSLongitude", None)  # type: Optional[IfdTag]
+        lon_ref = self.exif_data.get("GPS GPSLongitudeRef", None)
+        alt = self.exif_data.get("GPS GPSAltitude", None)  # type: Optional[IfdTag]
+        return GpsData(
+            self._ratios_to_coordinates(lat.values) if lat else None,
+            lat_ref,
+            self._ratios_to_coordinates(lon.values) if lon else None,
+            lon_ref,
+            alt,
+        )

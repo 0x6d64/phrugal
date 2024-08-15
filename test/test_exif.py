@@ -1,4 +1,5 @@
 import unittest
+from datetime import datetime
 from pathlib import Path
 
 import phrugal.exif
@@ -6,8 +7,6 @@ import phrugal.image
 
 
 class TestPhrugal(unittest.TestCase):
-    ENABLE_PRINTING = False
-
     @classmethod
     def setUpClass(cls):
         cls.test_image_source = Path("./img/exif-data-testdata").glob("**/*.jpg")
@@ -26,11 +25,10 @@ class TestPhrugal(unittest.TestCase):
             ("0095", "0mm"),
         ]
         for img, expected in input_and_expected:
-            instance = self._get_specific_img_instance(img)
-            actual = instance.get_focal_len()
-            self.assertEqual(expected, actual)
-            if self.ENABLE_PRINTING:
-                print(instance.image_path.stem, actual)
+            with self.subTest(f"image: {img}"):
+                instance = self._get_specific_img_instance(img)
+                actual = instance.get_focal_length()
+                self.assertEqual(expected, actual)
 
     def test_get_aperture(self):
         input_and_expected = [
@@ -38,11 +36,10 @@ class TestPhrugal(unittest.TestCase):
             ("0095", "inf"),
         ]
         for img, expected in input_and_expected:
-            instance = self._get_specific_img_instance(img)
-            actual = instance.get_aperture()
-            self.assertEqual(expected, actual)
-            if self.ENABLE_PRINTING:
-                print(instance.image_path.stem, actual)
+            with self.subTest(f"image: {img}"):
+                instance = self._get_specific_img_instance(img)
+                actual = instance.get_aperture()
+                self.assertEqual(expected, actual)
 
     def test_get_iso(self):
         input_and_expected = [
@@ -53,11 +50,10 @@ class TestPhrugal(unittest.TestCase):
             ("0095", "ISO 4000"),
         ]
         for img, expected in input_and_expected:
-            instance = self._get_specific_img_instance(img)
-            actual = instance.get_iso()
-            self.assertEqual(expected, actual)
-            if self.ENABLE_PRINTING:
-                print(instance.image_path.stem, actual)
+            with self.subTest(f"image: {img}"):
+                instance = self._get_specific_img_instance(img)
+                actual = instance.get_iso()
+                self.assertEqual(expected, actual)
 
     def test_get_title(self):
         instance = self._get_specific_img_instance("0027")
@@ -74,8 +70,9 @@ class TestPhrugal(unittest.TestCase):
 
     def test_get_timestamp(self):
         instance = self._get_specific_img_instance("0027")
-        actual = instance.get_timestamp()
-        self.assertEqual("todo", actual)
+        actual = instance._get_timestamp_raw()
+        expected = datetime(2024, 7, 29, 18, 36, 10)
+        self.assertEqual(expected, actual)
 
     def test_get_gps(self):
         # fmt: off
@@ -93,13 +90,28 @@ class TestPhrugal(unittest.TestCase):
             include_altitude,
             expected,
         ) in input_usedms_includealtitude_expected:
-            instance = self._get_specific_img_instance(img)
-            actual = instance.get_gps(
-                include_altitude=include_altitude, use_dms=use_dms
-            )
-            self.assertEqual(expected, actual)
-            if self.ENABLE_PRINTING:
-                print(instance.image_path.stem, actual)
+            with self.subTest(f"image: {img}"):
+                instance = self._get_specific_img_instance(img)
+                actual = instance.get_gps_coordinates(
+                    include_altitude=include_altitude, use_dms=use_dms
+                )
+                self.assertEqual(expected, actual)
+
+    def test_get_geocode(self):
+        instance = self._get_specific_img_instance("21.37.27")
+
+        zoom_expected = [
+            (8, "Sibiu, România"),
+            (12, "Sibiu, Sibiu, România"),
+            (14, "Sibiu, Sibiu, România"),
+            (16, "Piața 1 Decembrie 1918, Sibiu, Sibiu, România"),
+            (20, "Piața 1 Decembrie 1918, Sibiu, Sibiu, România"),
+        ]
+        for zoom, expected in zoom_expected:
+            with self.subTest(f"zoom {zoom}"):
+                actual = instance.get_geocode(zoom=zoom)
+                expected = expected
+                self.assertEqual(expected, actual)
 
     def test_get_shutter_speed(self):
         # fmt: off
@@ -114,13 +126,23 @@ class TestPhrugal(unittest.TestCase):
         # fmt: on
 
         for ped in self.test_instances:
-            ped = phrugal.exif.PhrugalExifData(ped.image_path)
-            actual = ped.get_shutter_speed()
+            with self.subTest(f"image: {ped.image_path}"):
+                ped = phrugal.exif.PhrugalExifData(ped.image_path)
+                actual = ped.get_shutter_speed()
 
-            if any(x in ped.image_path.name for x in images_without_shutterspeed):
-                self.assertIsNone(actual)
-            else:
-                self.assertIn(actual, expected_results)
+                if any(x in ped.image_path.name for x in images_without_shutterspeed):
+                    self.assertIsNone(actual)
+                else:
+                    self.assertIn(actual, expected_results)
 
-            if self.ENABLE_PRINTING:
-                print(ped.image_path.stem, actual)
+    def test_get_image_xp_title(self):
+        instance = self._get_specific_img_instance("21.37.27")
+        actual = instance.get_image_xp_title()
+        expected = "train station"
+        self.assertEqual(expected, actual)
+
+    def test_get_image_xp_description(self):
+        instance = self._get_specific_img_instance("21.37.27")
+        actual = instance.get_image_xp_description()
+        expected = "Sibiu train station"
+        self.assertEqual(expected, actual)
