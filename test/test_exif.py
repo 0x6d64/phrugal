@@ -103,6 +103,22 @@ class TestPhrugal(unittest.TestCase):
             if self.ENABLE_PRINTING:
                 print(instance.image_path.stem, actual)
 
+    def test_get_geocode(self):
+        instance = self._get_specific_img_instance("21.37.27")
+
+        zoom_expected = [
+            (8, "Sibiu, România"),
+            (12, "Sibiu, Sibiu, România"),
+            (14, "Sibiu, Sibiu, România"),
+            (16, "Piața 1 Decembrie 1918, Sibiu, Sibiu, România"),
+            (20, "Piața 1 Decembrie 1918, Sibiu, Sibiu, România"),
+        ]
+        for zoom, expected in zoom_expected:
+            with self.subTest(f"zoom {zoom}"):
+                actual = instance.get_geocode(zoom=zoom)
+                expected = expected
+                self.assertEqual(expected, actual)
+
     def test_get_shutter_speed(self):
         # fmt: off
         expected_results = {'1.3s', '1/60s', '1/40s', '1/800s', '1/30s', '1/1250s', '1/500s', '1/25s',
