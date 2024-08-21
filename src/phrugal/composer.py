@@ -38,7 +38,6 @@ class PhrugalComposer:
         self._img_instances = sorted(
             self._img_instances, key=lambda x: x.aspect_ratio_normalized, reverse=False
         )
-
         img_groups = self._generate_img_groups(self._img_instances, images_count)
         self._process_all_img_groups(img_groups, output_path)
 

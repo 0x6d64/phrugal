@@ -1,3 +1,4 @@
+import random
 from dataclasses import dataclass
 from fractions import Fraction
 from pathlib import Path
@@ -5,10 +6,17 @@ from typing import Iterable, List
 
 import PIL.Image as pill_image
 from PIL.Image import Image, Resampling
+from PIL.ImageDraw import Draw
 
 from phrugal.decorated_image import DecoratedPhrugalImage
 from phrugal.decoration_config import DecorationConfig
 from phrugal.image import PhrugalImage
+from phrugal.types import Coordinates
+
+
+def get_contrasting_color():
+    colors = ["black", "blue", "green", "red"]
+    return random.choice(colors)
 
 
 @dataclass
@@ -34,7 +42,7 @@ class ImageMerge:
         if not is_landscape_orientation:
             self.image = self.image.rotate(90 if rotate_ccw else -90, expand=True)
 
-    def scale_to_target_dimensions(
+    def scale_to_dimensions(
         self,
         x_target: int | None = None,
         y_target: int | None = None,
@@ -52,9 +60,13 @@ class ImageMerge:
         else:
             factor = float(y_target) / float(y_prev)
             x_target = x_prev * factor
-        self.image.resize(
-            (x_target, y_target), resample=resample_method, reducing_gap=4.0
-        )
+        already_correct_size = abs(factor - 1) < 1e-5
+        if not already_correct_size:
+            self.image = self.image.resize(
+                (int(x_target), int(y_target)),
+                resample=resample_method,
+                reducing_gap=4.0,
+            )
 
 
 class ImageComposition:
@@ -66,26 +78,21 @@ class ImageComposition:
 
     def write_composition(self, filename: Path, decoration_config: DecorationConfig):
         decorated_images = self._get_decorated_images(decoration_config)
-        composition = self._get_composition(decorated_images)
+        composition = self.get_composition(decorated_images)
         composition.save(filename)
 
-    def _get_composition(self, decorated_images: Iterable[Image]) -> Image:
-        composition = self._merge_image_list(
-            [ImageMerge(image=im, count=1) for im in decorated_images]
-        )
+    def get_composition(
+        self, decorated_images: Iterable[Image], draw_separator: bool = True
+    ) -> Image:
+        img_list_to_compose = [ImageMerge(image=im, count=1) for im in decorated_images]
+        composition = self._merge_image_list(img_list_to_compose, draw_separator)
         return composition.image
 
     @staticmethod
-    def _merge_image_list(image_data: List[ImageMerge]) -> ImageMerge | None:
-        """Merge a list of images until you end up with one single image.
-
-        As an input, we expect a list of tuples, each represent an image plus the count of images contained.
-        The algorithm always merges the 2 images with the least number of images contained until only 1 image
-        remains.
-
-        :param image_data:
-        :return:
-        """
+    def _merge_image_list(
+        image_data: List[ImageMerge], draw_separator: bool
+    ) -> ImageMerge | None:
+        """Recursively merge a list of images until only 1 survives"""
         if not image_data:
             return None
         if len(image_data) == 1:
@@ -95,27 +102,30 @@ class ImageComposition:
             image_data.pop(0), image_data.pop(0)
         )
         image_data.append(new_merged)
-        return ImageComposition._merge_image_list(image_data)
+        return ImageComposition._merge_image_list(image_data, draw_separator)
 
     @staticmethod
-    def _merge_two_images(img_a: ImageMerge, img_b: ImageMerge) -> ImageMerge:
+    def _merge_two_images(
+        img_a: ImageMerge, img_b: ImageMerge, draw_separator=True, draw_debug_box=False
+    ) -> ImageMerge:
         img_a.ensure_landscape_orientation()
         img_b.ensure_landscape_orientation()
 
-        # check that aspect ratios are the same (or close enough)
-        accepted_delta = 1e-5
-        ratio_diff = abs(img_a.aspect_ratio - img_b.aspect_ratio)
-        assert ratio_diff < accepted_delta
-
-        bigger_x_dim = max(img_a.image.size[0], img_b.image.size[0])
-        img_a.scale_to_target_dimensions(x_target=bigger_x_dim)
-        img_b.scale_to_target_dimensions(x_target=bigger_x_dim)
+        bigger_x_dim = int(max(img_a.image.size[0], img_b.image.size[0]))
+        img_a.scale_to_dimensions(x_target=bigger_x_dim)
+        img_b.scale_to_dimensions(x_target=bigger_x_dim)
 
         new_img = pill_image.new(
             "RGB", (bigger_x_dim, img_a.y + img_b.y), color="white"
         )
-        new_img.paste(img_a.image, (0, 0))
-        new_img.paste(img_b.image, (0, img_a.y))
+        new_img.paste(img_a.image, (int((bigger_x_dim - img_a.x) / 2), 0))
+        new_img.paste(img_b.image, (int((bigger_x_dim - img_b.x) / 2), img_a.y))
+        if draw_separator:
+            ImageComposition._draw_line(new_img, (0, img_a.y), (bigger_x_dim, img_a.y))
+        if draw_debug_box:
+            ImageComposition._draw_box(
+                new_img, (0, 0), new_img.size, color=get_contrasting_color()
+            )
 
         new_count = img_a.count + img_b.count
         merge_returned = ImageMerge(image=new_img, count=new_count)
@@ -123,6 +133,33 @@ class ImageComposition:
             rotate_ccw=(new_count / 2) % 2 == 0  # rotate cw and ccw every 2 merges
         )
         return merge_returned
+
+    @staticmethod
+    def _draw_box(
+        img: Image,
+        corner_a: Coordinates,
+        corner_b: Coordinates,
+        color: str = "red",
+        width: int = 3,
+    ):
+        draw = Draw(img)
+        a_x, a_y = corner_a
+        b_x, b_y = corner_b
+        a_x += 1
+        b_x -= 1
+        a_y += 1
+        b_y -= 1
+        coords = [corner_a, (b_x, a_y), corner_b, (a_x, b_y), corner_a]
+        draw.line(
+            coords,
+            fill=color,
+            width=width,
+        )
+
+    @staticmethod
+    def _draw_line(img, start: Coordinates, end: Coordinates):
+        draw = Draw(img)
+        draw.line([start, end], fill="black", width=1)
 
     def _get_decorated_images(self, config: DecorationConfig) -> Iterable[Image]:
         decorated_images = []
