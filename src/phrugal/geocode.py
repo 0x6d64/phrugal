@@ -16,14 +16,19 @@ def get_geocoder() -> Nominatim:
 class Geocoder:
     GEOCODER = None
     _CALLS_MADE = 0
-    MIN_DELAY_SECONDS = 1.05
+    MIN_DELAY_SECONDS = 1.1
+    ERROR_WAIT_SECONDS = 7
+    MAX_RETRIES = 5
     DEFAULT_ZOOM = 12
 
     def __init__(self):
         if self.GEOCODER is None:
             self.GEOCODER = get_geocoder()
             self._reverse_rate_limited = RateLimiter(
-                self.GEOCODER.reverse, min_delay_seconds=self.MIN_DELAY_SECONDS
+                self.GEOCODER.reverse,
+                min_delay_seconds=self.MIN_DELAY_SECONDS,
+                max_retries=self.MAX_RETRIES,
+                error_wait_seconds=self.ERROR_WAIT_SECONDS,
             )
 
     @cache
