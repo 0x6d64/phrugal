@@ -36,23 +36,25 @@ class PhrugalComposer:
             self._img_instances.append(img)
 
         self._img_instances = sorted(
-            self._img_instances, key=lambda x: x.aspect_ratio_normalized, reverse=True
+            self._img_instances, key=lambda x: x.aspect_ratio_normalized, reverse=False
         )
 
         img_groups = self._generate_img_groups(self._img_instances, images_count)
-        self._process_img_group(img_groups, output_path)
+        self._process_all_img_groups(img_groups, output_path)
 
-    def _process_img_group(self, img_groups, output_path):
-        for group in img_groups:
-            composition_filename = (
-                output_path / "-".join(x.file_name.stem for x in group)
-            ).with_suffix(".jpg")
+    def _process_all_img_groups(self, img_groups, output_path):
+        for idx, group in enumerate(img_groups):
+            composition_filename = output_path / self._get_filename(group, idx)
             composition = ImageComposition(
                 group, target_aspect_ratio=self.target_aspect_ratio
             )
             composition.write_composition(
                 filename=composition_filename, decoration_config=self.decoration_config
             )
+
+    def _get_filename(self, group, idx):
+        fn = Path(f"img-{idx}")
+        return fn.with_suffix(".jpg")
 
     @staticmethod
     def _validate_padding_strategy(padding_strategy):
