@@ -8,7 +8,7 @@ from PIL.ImageFont import truetype, FreeTypeFont
 
 from .decoration_config import DecorationConfig
 from .exif import PhrugalExifData
-from .image import PhrugalImage, PhrugalPlaceholder
+from .image import PhrugalImage
 from .types import ColorTuple, Dimensions, Coordinates
 
 
