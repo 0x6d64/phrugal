@@ -6,11 +6,15 @@ save money when printing photos
 
 You like to take pictures, but the prints that you get at the drug store are kind of big?
 Would you like to print several images per print? Phrugal can do this for you in a
-hopefully aesthetically pleasing way.
+hopefully aesthetically pleasing way. Plus, phrugal adds a border with meta information
+according to user configuration.
 
-🚧 TODO: This section needs an image explanation
+This is how an example output might look like:
+![example-out.jpg](doc%2Fimg%2Fexample-out.jpg)
 
 ## Usage
+
+🚧 These features are not yet implemented.
 
 In order to use phrugal, first install it:
 
@@ -26,25 +30,33 @@ phrugal --help
 
 🚧 TODO: This section needs expansion
 
-## Features
+## Configuration
 
-Phrugal offers the following features:
+🚧 TODO: describe after implementation.
 
-* Index print: combine N images into one, helping you print the images in a reduced size (and at
-  reduced costs)
-* Add a white border around images
-* On that border, add EXIF information
+## Limitations and Scope
 
-Phrugal currently does not:
+When creating a "composition" of several images, the user needs to tell phrugal
+a desired aspect ratio. Phrugal currently does not attempt to optimize which images
+to combine on one page. Instead, it adds padding to all images until they
+have the desired aspect ratio.
 
-* Handle any image aspect ratios. Phrugal assumes that the target print ratio and all input images
-  have the same aspect ratio.
+As another limitation, phrugal does offer all possible EXIF fields as metadata.
+It does not support [XMP tags](https://exiftool.org/TagNames/XMP.html) currently.
+
+
+### Not in scope
 
 Phrugal will probably never:
 
-* attempt to modify the actual look of the input image, e.g. do a black and white conversion or
-  apply some filter. There are better tools for that.
+* attempt to modify the actual look of the input image, e.g. do a black and white 
+  conversion or apply some filter. I believe there are better tools for that.
 
 ## References and acknowledgements
 
-Phrugal makes heavy use of [Pillow](https://pillow.readthedocs.io/en/stable/).
+Phrugal makes heavy use of:
+
+- [Pillow](https://pillow.readthedocs.io/en/stable/)
+- [exifread](https://github.com/ianare/exif-py)
+- [geopy](https://github.com/geopy/geopy) (as an interface with Nominatim to translate GPS
+  coordinates into location names)
