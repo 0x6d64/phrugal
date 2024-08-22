@@ -53,3 +53,10 @@ class PhrugalImage:
             self.pillow_image.close()
         except AttributeError:  # if open fails, we will not have self.image, ignore it
             pass
+
+
+class PhrugalPlaceholder(PhrugalImage):
+    def __init__(self, img: Image) -> None:
+        self.file_name = None
+        self.pillow_image = img
+        self.rotation_degrees = 0
