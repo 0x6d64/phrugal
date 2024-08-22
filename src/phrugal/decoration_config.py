@@ -28,22 +28,6 @@ class DecorationConfig:
         self.item_separator = item_separator
         self._config = dict()
 
-    @property
-    def bottom_left(self):
-        return self._config.get("bottom_left")
-
-    @property
-    def bottom_right(self):
-        return self._config.get("bottom_right")
-
-    @property
-    def top_left(self):
-        return self._config.get("top_left")
-
-    @property
-    def top_right(self):
-        return self._config.get("top_right")
-
     def load_from_file(self, config_file: Path | str):
         with open(config_file, "r") as cf:
             self._config = json.load(cf)
@@ -61,16 +45,9 @@ class DecorationConfig:
         self._config = self.DEFAULT_CONFIG
 
     def get_string_at_corner(self, exif: PhrugalExifData, corner: str) -> str:
-        if corner == "bottom_left":
-            result_string = self._build_configured_string(exif, self.bottom_left)
-        elif corner == "bottom_right":
-            result_string = self._build_configured_string(exif, self.bottom_right)
-        elif corner == "top_left":
-            result_string = self._build_configured_string(exif, self.top_left)
-        elif corner == "top_right":
-            result_string = self._build_configured_string(exif, self.top_right)
-        else:
-            raise ValueError(f"Corner name {corner} is not valid")
+        valid_corners = ["bottom_left", "bottom_right", "top_left", "top_right"]
+        assert corner in valid_corners
+        result_string = self._build_configured_string(exif, self._config.get(corner))
         return result_string
 
     def _build_configured_string(
