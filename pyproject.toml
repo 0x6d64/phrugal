@@ -13,10 +13,11 @@ description = "A tool for efficient multi-image printing with borders"
 authors = [{ name = "Martin Demling", email = "0x6d64@martin-demling.de" }]
 dynamic = ["version"]
 classifiers = [
-    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
     "License :: OSI Approved :: GPL-3.0-or-later",
     "Operating System :: OS Independent",
 ]
+requires-python = ">= 3.7"  # one reason is guaranteed behavior of odering in dict
 dependencies = [
     "Pillow>=8.0.0",
     "exifread>=3.0",
