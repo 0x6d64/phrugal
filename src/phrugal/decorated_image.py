@@ -69,7 +69,7 @@ class DecoratedPhrugalImage:
         return self._exif
 
     def get_decorated_image(self) -> PilImage.Image:
-        needs_rotation = self.base_image.aspect_ratio < 1
+        needs_rotation = self.base_image.aspect_ratio < 1.0
         if needs_rotation:
             self.base_image.rotate_90_deg_ccw()
 

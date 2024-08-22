@@ -145,10 +145,10 @@ class ImageComposition:
         draw = Draw(img)
         a_x, a_y = corner_a
         b_x, b_y = corner_b
-        a_x += 1
-        b_x -= 1
-        a_y += 1
-        b_y -= 1
+        # a_x += 1
+        # b_x -= 1
+        # a_y += 1
+        # b_y -= 1
         coords = [corner_a, (b_x, a_y), corner_b, (a_x, b_y), corner_a]
         draw.line(
             coords,

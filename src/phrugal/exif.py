@@ -44,11 +44,17 @@ class PhrugalExifData:
 
     def __init__(self, image_path: Path | str) -> None:
         self.image_path = image_path
-        with open(image_path, "rb") as fp:
-            self.exif_data = exifread.process_file(
-                fp, debug=self.EXTRACT_APPLICATION_NOTES  # type: ignore
-            )
         self.geocoder = Geocoder()
+        self._parse_exif()
+
+    def _parse_exif(self):
+        if self.image_path:
+            with open(self.image_path, "rb") as fp:
+                self.exif_data = exifread.process_file(
+                    fp, debug=self.EXTRACT_APPLICATION_NOTES  # type: ignore
+                )
+        else:
+            self.exif_data = dict()
 
     def __repr__(self):
         return f"exif: {Path(self.image_path).name}"
