@@ -43,4 +43,4 @@ class TestPhrugalComposer(unittest.TestCase):
     def test_create_composition(self):
         composer = PhrugalComposer(decoration_config=self.deco_config)
         composer.discover_images(self.test_data_path)
-        composer.create_compositions(output_path=self.temp_path, images_count=2)
+        composer.create_compositions(output_path=self.temp_path)

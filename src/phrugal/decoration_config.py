@@ -1,11 +1,15 @@
 import json
+import logging
 from pathlib import Path
 
 from .exif import PhrugalExifData
 
+logger = logging.getLogger(__name__)
+
 
 class DecorationConfig:
     DEFAULT_CONFIG = {
+        "image_count": 4,
         "bottom_left": {
             "focal_length": {},
             "aperture": {},
@@ -43,6 +47,13 @@ class DecorationConfig:
     def load_default_config(self):
         """Some default values, created mostly for debug purposes."""
         self._config = self.DEFAULT_CONFIG
+
+    def get_image_count(self) -> int:
+        try:
+            ic = int(self._config.get("image_count", None))  # type: ignore
+        except TypeError:
+            raise RuntimeError("Did not find integer image_count in config.")
+        return ic
 
     def get_string_at_corner(self, exif: PhrugalExifData, corner: str) -> str:
         valid_corners = ["bottom_left", "bottom_right", "top_left", "top_right"]
