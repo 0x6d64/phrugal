@@ -3,6 +3,8 @@ import os
 from pathlib import Path
 
 import phrugal
+from phrugal import DecorationConfig
+from phrugal.composer import PhrugalComposer
 
 
 def _get_parser() -> argparse.ArgumentParser:
@@ -35,6 +37,26 @@ def _get_parser() -> argparse.ArgumentParser:
 def _phrugal_main(args: argparse.Namespace):
     if args.create_default_config is not None:
         _create_default_config(args.create_default_config)
+    elif args.input_dir is None:
+        raise RuntimeError(
+            "parameter input_dir is needed, refer to --help for help!",
+        )
+
+    input_dir = Path(args.input_dir)
+    output_dir = Path(args.output_dir) if args.output_dir else Path(os.getcwd())
+
+    if not output_dir.exists():
+        os.makedirs(output_dir, exist_ok=True)
+
+    config = DecorationConfig()
+    if args.config:
+        config.load_from_file(Path(args.config))
+    else:
+        config.load_default_config()
+
+    composer = PhrugalComposer(decoration_config=config)
+    composer.discover_images(input_dir)
+    composer.create_compositions(output_path=output_dir)
 
 
 def _create_default_config(provided_path: str):
