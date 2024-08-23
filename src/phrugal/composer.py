@@ -36,7 +36,6 @@ class PhrugalComposer:
     def create_compositions(
         self,
         output_path: Path | str,
-        images_count: int,
         padding_strategy: PaddingStrategy = PaddingStrategy.UPSCALE,
     ):
         self._padding_strat = padding_strategy
@@ -47,7 +46,9 @@ class PhrugalComposer:
         self._img_instances = sorted(
             self._img_instances, key=lambda x: x.aspect_ratio_normalized, reverse=False
         )
-        self._generate_img_groups(self._img_instances, images_count)
+        self._generate_img_groups(
+            self._img_instances, self.decoration_config.get_image_count()
+        )
         self._process_all_img_groups(output_path)
 
     def _process_all_img_groups(self, output_path):

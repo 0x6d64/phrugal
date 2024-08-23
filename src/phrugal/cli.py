@@ -41,22 +41,22 @@ def _phrugal_main(args: argparse.Namespace):
         raise RuntimeError(
             "parameter input_dir is needed, refer to --help for help!",
         )
-
-    input_dir = Path(args.input_dir)
-    output_dir = Path(args.output_dir) if args.output_dir else Path(os.getcwd())
-
-    if not output_dir.exists():
-        os.makedirs(output_dir, exist_ok=True)
-
-    config = DecorationConfig()
-    if args.config:
-        config.load_from_file(Path(args.config))
     else:
-        config.load_default_config()
+        input_dir = Path(args.input_dir)
+        output_dir = Path(args.output_dir) if args.output_dir else Path(os.getcwd())
 
-    composer = PhrugalComposer(decoration_config=config)
-    composer.discover_images(input_dir)
-    composer.create_compositions(output_path=output_dir)
+        if not output_dir.exists():
+            os.makedirs(output_dir, exist_ok=True)
+
+        config = DecorationConfig()
+        if args.config:
+            config.load_from_file(Path(args.config))
+        else:
+            config.load_default_config()
+
+        composer = PhrugalComposer(decoration_config=config)
+        composer.discover_images(input_dir)
+        composer.create_compositions(output_path=output_dir)
 
 
 def _create_default_config(provided_path: str):
