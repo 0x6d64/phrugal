@@ -1,6 +1,5 @@
 import argparse
 import os
-import sys
 from pathlib import Path
 
 import phrugal
@@ -35,13 +34,17 @@ def _get_parser() -> argparse.ArgumentParser:
 
 def _phrugal_main(args: argparse.Namespace):
     if args.create_default_config is not None:
-        if args.create_default_config == "":
-            current_dir = os.getcwd()
-            target_file = Path(current_dir) / "phrugal-default.json"
-        else:
-            target_file = Path(args.create_default_config)
-        pc = phrugal.DecorationConfig()
-        pc.write_default_config(target_file)
+        _create_default_config(args.create_default_config)
+
+
+def _create_default_config(provided_path: str):
+    if provided_path == "":
+        current_dir = os.getcwd()
+        target_file = Path(current_dir) / "phrugal-default.json"
+    else:
+        target_file = Path(provided_path)
+    pc = phrugal.DecorationConfig()
+    pc.write_default_config(target_file)
 
 
 def run_cli():
