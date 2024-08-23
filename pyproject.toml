@@ -35,8 +35,8 @@ versionfile_build = "phrugal/_version.py"
 tag_prefix = ""
 parentdir_prefix = "phrugal"
 
-#[project.scripts]
-#phrugal = "phrugal.main:main"
+[project.scripts]
+phrugal = "phrugal.cli:run_cli"
 
 [tool.setuptools.packages.find]
 where = ["src"]
