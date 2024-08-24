@@ -1,3 +1,4 @@
+import logging
 from fractions import Fraction
 from typing import Optional
 
@@ -10,6 +11,8 @@ from .decoration_config import DecorationConfig
 from .exif import PhrugalExifData
 from .image import PhrugalImage
 from .types import ColorTuple, Dimensions, Coordinates
+
+logger = logging.getLogger(__name__)
 
 
 def add_dimensions(a: Dimensions, b: Dimensions) -> Dimensions:
@@ -69,8 +72,10 @@ class DecoratedPhrugalImage:
         return self._exif
 
     def get_decorated_image(self) -> PilImage.Image:
+        logger.debug(f"creating decorated image {self}")
         needs_rotation = self.base_image.aspect_ratio < 1.0
         if needs_rotation:
+            logger.debug("rotating image...")
             self.base_image.rotate_90_deg_ccw()
 
         image_dimensions_padded = self.get_padded_dimensions()
@@ -82,6 +87,7 @@ class DecoratedPhrugalImage:
             self.base_image.pillow_image,
             scale_dimensions(self.get_border_dimensions(), 0.5),
         )
+        logger.debug("drawing text on border...")
         self.draw_text_items(decorated_img)
         return decorated_img
 

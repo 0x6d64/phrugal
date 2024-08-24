@@ -1,9 +1,12 @@
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 
 from PIL import Image
 
 from .types import Dimensions
+
+logger = logging.getLogger(__name__)
 
 MM_PER_INCH = 25.4
 

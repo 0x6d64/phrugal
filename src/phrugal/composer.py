@@ -1,3 +1,4 @@
+import logging
 from enum import StrEnum, unique, auto
 from fractions import Fraction
 from pathlib import Path
@@ -8,6 +9,8 @@ import PIL.Image
 from phrugal.composition import ImageComposition
 from phrugal.decoration_config import DecorationConfig
 from phrugal.image import PhrugalImage, PhrugalPlaceholder
+
+logger = logging.getLogger(__name__)
 
 
 @unique
@@ -46,6 +49,7 @@ class PhrugalComposer:
         self._img_instances = sorted(
             self._img_instances, key=lambda x: x.aspect_ratio_normalized, reverse=False
         )
+        logger.debug("generate image groups...")
         self._generate_img_groups(
             self._img_instances, self.decoration_config.get_image_count()
         )
@@ -53,6 +57,7 @@ class PhrugalComposer:
 
     def _process_all_img_groups(self, output_path):
         for idx, group in enumerate(self._image_groups):
+            logger.info(f"process group {idx + 1}/{len(self._image_groups)}")
             composition_filename = output_path / self._get_filename(group, idx)
             composition = ImageComposition(
                 group, target_aspect_ratio=self.target_aspect_ratio
@@ -67,6 +72,7 @@ class PhrugalComposer:
 
     def discover_images(self, path):
         self.input_files = [p for p in Path(path).glob("**/*.jpg")]
+        logger.info(f"discovered {len(self.input_files)} images in {path}")
 
     def _generate_img_groups(
         self, input_objects: List[PhrugalImage], group_len: int
@@ -83,9 +89,11 @@ class PhrugalComposer:
             ph_image_dims = (int(1000 * self.target_aspect_ratio), 1000)
             # fixme: read padding image color from border config
             ph_image = PIL.Image.new("RGB", ph_image_dims, color="white")
+            logger.debug(f"adding {padding_images_count} place holders for padding")
             for placeholder_nr in range(padding_images_count):
                 remainder.append(PhrugalPlaceholder(ph_image))
         elif self._padding_strat == PaddingStrategy.DUPLICATE:
+            logger.debug(f"adding {padding_images_count} duplicates for padding")
             for duplicate_nr in range(padding_images_count):
                 # if more padding images are needed than we have in input, wrap around
                 idx_to_duplicate = duplicate_nr % len(input_objects)
@@ -95,5 +103,6 @@ class PhrugalComposer:
 
         if remainder:
             img_grps.append(tuple(remainder))
+        logger.info(f"generated {len(img_grps)} image groups")
 
         self._image_groups = img_grps

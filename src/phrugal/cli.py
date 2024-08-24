@@ -1,10 +1,15 @@
 import argparse
+import logging
 import os
+import sys
 from pathlib import Path
 
 import phrugal
 from phrugal import DecorationConfig
 from phrugal.composer import PhrugalComposer
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
 def _get_parser() -> argparse.ArgumentParser:

@@ -1,3 +1,4 @@
+import logging
 from functools import cache
 
 from geopy import Point
@@ -5,6 +6,8 @@ from geopy.extra.rate_limiter import RateLimiter
 from geopy.geocoders import Nominatim
 
 import phrugal
+
+logger = logging.getLogger(__name__)
 
 USER_AGENT = f"phrugal/{phrugal.__version__} (+https://github.com/0x6d64/phrugal)"
 

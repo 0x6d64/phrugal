@@ -13,6 +13,10 @@ from phrugal.decoration_config import DecorationConfig
 from phrugal.image import PhrugalImage
 from phrugal.types import Coordinates
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def get_contrasting_color():
     colors = ["black", "blue", "green", "red"]
@@ -85,6 +89,7 @@ class ImageComposition:
         self, decorated_images: Iterable[Image], draw_separator: bool = True
     ) -> Image:
         img_list_to_compose = [ImageMerge(image=im, count=1) for im in decorated_images]
+        logger.info("merge decorated images in group...")
         composition = self._merge_image_list(img_list_to_compose, draw_separator)
         return composition.image
 
@@ -96,7 +101,9 @@ class ImageComposition:
         if not image_data:
             return None
         if len(image_data) == 1:
+            logger.debug("done merging images!")
             return image_data[0]
+        logger.debug(f"remaining images for merge: {len(image_data)}")
         image_data.sort(key=lambda i: i.count)
         new_merged = ImageComposition._merge_two_images(
             image_data.pop(0), image_data.pop(0)
@@ -164,6 +171,7 @@ class ImageComposition:
     def _get_decorated_images(self, config: DecorationConfig) -> Iterable[Image]:
         decorated_images = []
         for image in self.images:
+            logger.info(f"decorating image {image}")
             img_decorated = DecoratedPhrugalImage(
                 image, target_aspect_ratio=self.target_aspect_ratio
             )

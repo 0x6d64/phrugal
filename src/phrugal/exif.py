@@ -1,4 +1,5 @@
 import datetime
+import logging
 from collections import namedtuple
 from pathlib import Path
 from typing import Optional, Tuple, Iterable
@@ -9,6 +10,8 @@ from exifread.utils import Ratio
 from geopy import Point
 
 from .geocode import Geocoder
+
+logger = logging.getLogger(__name__)
 
 GpsData = namedtuple("GpsData", ["lat", "lat_ref", "lon", "lon_ref", "altitude"])
 
