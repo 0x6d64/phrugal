@@ -15,6 +15,7 @@ author = 'Martin Demling'
 
 extensions = [
     "sphinx_rtd_theme",
+    "sphinx.ext.autosectionlabel"
 ]
 
 templates_path = ['_templates']
