@@ -25,7 +25,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["black", "ruff", "coverage"]
+dev = ["black", "ruff", "coverage", "sphinx"]
 
 [tool.versioneer]
 VCS = "git"
