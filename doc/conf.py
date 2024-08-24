@@ -22,9 +22,9 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The short X.Y version.
 import phrugal
-version = '0.0.1'
+version = phrugal.__version__
 # The full version, including alpha/beta/rc tags.
-release = phrugal.__version__
+release = version
 
 
 
@@ -33,3 +33,12 @@ release = phrugal.__version__
 
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
+
+html_context = {
+    "display_github": True, # Integrate GitHub
+    "github_user": "0x6d64", # Username
+    "github_repo": "phrugal", # Repo name
+    "github_version": "master", # Version
+    "conf_py_path": "/doc/", # Path in the checkout to the docs root
+}
+html_logo = "./img/phrugal-logo-draft-small.png"
