@@ -10,29 +10,16 @@ hopefully aesthetically pleasing way. Plus, phrugal adds a border with meta info
 according to user configuration.
 
 This is how an example output might look like:
-![example-out.jpg](doc%2Fimg%2Fexample-out.jpg)
+![](https://github.com/0x6d64/phrugal/raw/master/doc%2Fimg%2Fexample-out.jpg)
 
 ## Usage
-
-🚧 These features are not yet implemented.
-
-In order to use phrugal, first install it:
-
-```bash
-pip install phrugal
-```
-
-Then, refer to the CLI help for usage notes:
+Refer to the CLI help for usage notes:
 
 ```bash
 phrugal --help
 ```
 
-🚧 TODO: This section needs expansion
-
-## Configuration
-
-🚧 TODO: describe after implementation.
+For _configuration_ options, refer to the documentation.
 
 ## Limitations and Scope
 
