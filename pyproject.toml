@@ -13,6 +13,7 @@ build-backend = "setuptools.build_meta"
 name = "Phrugal"
 description = "A tool for efficient multi-image printing with borders"
 authors = [{ name = "Martin Demling", email = "0x6d64@martin-demling.de" }]
+readme = { file = 'README.md', content-type = 'text/markdown' }
 dynamic = ["version"]
 classifiers = [
     "Programming Language :: Python :: 3.7",
