@@ -1,4 +1,5 @@
 import os
+import platform
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -7,7 +8,12 @@ from phrugal.composer import PhrugalComposer
 from phrugal.decoration_config import DecorationConfig
 
 
+def platform_is_windows() -> bool:
+    return platform.system().lower() == "windows"
+
+
 class TestPhrugalComposer(unittest.TestCase):
+
     def setUp(self):
         current_dir = os.path.dirname(__file__)
         self.test_data_path = Path(f"{current_dir}/img/aspect-ratio")
@@ -52,4 +58,6 @@ class TestPhrugalComposer(unittest.TestCase):
     def test_create_composition(self):
         composer = PhrugalComposer(decoration_config=self.deco_config)
         composer.discover_images(self.test_data_path)
+        if not platform_is_windows():
+            self.deco_config._config["font_name"] = "Verdana.ttf"
         composer.create_compositions(output_path=self.temp_path)
