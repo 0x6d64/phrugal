@@ -17,7 +17,7 @@ readme = { file = 'README.md', content-type = 'text/markdown' }
 dynamic = ["version"]
 classifiers = [
     "Programming Language :: Python :: 3.7",
-    "License :: OSI Approved :: GPL-3.0-or-later",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Operating System :: OS Independent",
 ]
 requires-python = ">= 3.7"  # one reason is guaranteed behavior of odering in dict
