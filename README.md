@@ -1,6 +1,8 @@
 # phrugal
 
-save money when printing photos
+Save money when printing photos.
+
+[![python build and tests](https://github.com/0x6d64/phrugal/actions/workflows/py-build-test.yml/badge.svg?branch=master)](https://github.com/0x6d64/phrugal/actions/workflows/py-build-test.yml)
 
 ## Use case
 

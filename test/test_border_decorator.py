@@ -1,4 +1,5 @@
 import itertools
+import os.path
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
@@ -9,7 +10,9 @@ from phrugal.image import PhrugalImage
 
 class TestBorderDecorator(TestCase):
     def setUp(self):
-        self.test_data_path = Path("./img/aspect-ratio")
+        current_dir = os.path.dirname(__file__)
+        self.test_data_path = Path(f"{current_dir}/img/aspect-ratio")
+        self.assertTrue(self.test_data_path.exists())
         self._temp_dir = TemporaryDirectory(prefix="phrugal-test")
         self.temp_path = Path(self._temp_dir.name)
 

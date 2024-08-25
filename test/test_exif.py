@@ -1,3 +1,4 @@
+import os
 import unittest
 from datetime import datetime
 from pathlib import Path
@@ -9,7 +10,8 @@ import phrugal.image
 class TestPhrugal(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.test_image_source = Path("./img/exif-data-testdata").glob("**/*.jpg")
+        current_dir = os.path.dirname(__file__)
+        cls.test_image_source = Path(f"{current_dir}/img/exif-data-testdata").glob("**/*.jpg")
         cls.test_instances = [
             phrugal.exif.PhrugalExifData(x) for x in cls.test_image_source
         ]

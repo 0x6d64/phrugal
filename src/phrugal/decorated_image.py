@@ -1,11 +1,10 @@
 import logging
 from fractions import Fraction
-from typing import Optional
 
 import PIL.Image as PilImage
 from PIL.ImageColor import getrgb
 from PIL.ImageDraw import Draw
-from PIL.ImageFont import truetype, FreeTypeFont
+from PIL.ImageFont import truetype, FreeTypeFont, load_default
 
 from .decoration_config import DecorationConfig
 from .exif import PhrugalExifData
@@ -40,7 +39,6 @@ class DecoratedPhrugalImage:
 
     TEXT_RATIO = 0.7  # how many percent of the border shall be covered by text
     FONT_CACHE = dict()
-    DEFAULT_FONT = "arial.ttf"
     BORDER_MULTIPLIER = 1.0
     NOMINAL_LEN_LARGER_SIDE_MM = 130.0
     DESIRED_BORDER_WIDTH_BASE_MM = 5.0
@@ -52,13 +50,11 @@ class DecoratedPhrugalImage:
         target_aspect_ratio: float | Fraction | None = None,
         background_color: str = "white",
         text_color: str = "black",
-        font_name: Optional[str] = DEFAULT_FONT,
         decoration_config: DecorationConfig | None = None,
     ):
         self.base_image = base_image
         self.background_color = getrgb(background_color)  # type: ColorTuple
         self.text_color = getrgb(text_color)  # type: ColorTuple
-        self.font_name = font_name
         self.target_aspect_ratio = (
             target_aspect_ratio if target_aspect_ratio else Fraction(3, 2)
         )
@@ -97,7 +93,7 @@ class DecoratedPhrugalImage:
         This modification is in-place.
         """
         draw = Draw(image_w_border)
-        font = self._get_font(self.font_name)
+        font = self._get_font(self.config.get_font_name())
         for corner in self.CORNER_NAMES:
             text_on_right_side = corner.endswith("_right")
             # see https://pillow.readthedocs.io/en/stable/handbook/text-anchors.html#specifying-an-anchor
@@ -190,60 +186,17 @@ class DecoratedPhrugalImage:
         padded = int(padded[0]), int(padded[1])  # ensure int as values
         return padded
 
-    # def get_decorated_image(self, decoration: BorderDecorator) -> Image:
-    #     new_img = Image.new(
-    #         "RGB",
-    #         decoration.get_size_with_border(self.image_dims),
-    #         color=decoration.background_color,
-    #     )
-    #     new_img.paste(self._image, decoration.get_border_size(self.image_dims))
-    #     self._draw_text(new_img, decoration)
-    #
-    #     return new_img
-
-    # def _draw_text(self, img: Image, decoration: BorderDecorator) -> None:
-    #     draw = ImageDraw.Draw(img)
-    #     font = self._get_font(decoration)
-    #     border_x, border_y = decoration.get_border_size(self.image_dims)
-    #
-    #     text = self._get_text()
-    #     text_offset_pixel = int(
-    #         (border_x - decoration.get_font_size(self.image_dims)) * 0.5
-    #     )
-    #     text_origin = (
-    #         text_offset_pixel + border_x,
-    #         text_offset_pixel + self.image_dims[1] + border_y,
-    #     )
-    #     draw.text(text_origin, text, fill=decoration.text_color, font=font)
-    #
-    # def _get_text(self) -> str:
-    #     # 50mm | f/2.8 | 1/250s | ISO 400
-    #     exif = PhrugalExifData(self.file_name)
-    #
-    #     candidates = [
-    #         exif.get_focal_len(),
-    #         exif.get_aperture(),
-    #         exif.get_shutter_speed(),
-    #         exif.get_iso(),
-    #     ]
-    #     t = " | ".join([x for x in candidates if x])
-    #     return t
-    #
-    # def _get_font(self, decoration: BorderDecorator) -> ImageFont.FreeTypeFont:
-    #     font_size = int(decoration.get_font_size(self.image_dims))
-    #     if decoration.font is None:
-    #         font = ImageFont.truetype("arial.ttf", size=font_size)
-    #     else:
-    #         font = ImageFont.truetype(decoration.font, size=font_size)
-    #     return font
-
     def _get_font(self, font_name: str, font_size: int | None = None) -> FreeTypeFont:
         if font_size is None:
             font_size = self.get_font_size()
         if (font_name, font_size) in self.FONT_CACHE:
             font = self.FONT_CACHE[(font_name, int(font_size))]
         else:
-            font = truetype(font_name, size=font_size)
+            try:
+                font = truetype(font_name, size=font_size)
+            except OSError:
+                logger.warning(f"unable to open {font_name}, fallback to default!")
+                font = load_default(font_size)
             self.FONT_CACHE[(font_name, int(font_size))] = font
         return font
 

@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 class DecorationConfig:
     DEFAULT_CONFIG = {
         "image_count": 4,
+        "font_name": "bahnschrift.ttf",
         "bottom_left": {
             "focal_length": {},
             "aperture": {},
@@ -54,6 +55,9 @@ class DecorationConfig:
         except TypeError:
             raise RuntimeError("Did not find integer image_count in config.")
         return ic
+
+    def get_font_name(self) -> str:
+        return self._config.get("font_name")
 
     def get_string_at_corner(self, exif: PhrugalExifData, corner: str) -> str:
         valid_corners = ["bottom_left", "bottom_right", "top_left", "top_right"]
