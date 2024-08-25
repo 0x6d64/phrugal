@@ -58,6 +58,4 @@ class TestPhrugalComposer(unittest.TestCase):
     def test_create_composition(self):
         composer = PhrugalComposer(decoration_config=self.deco_config)
         composer.discover_images(self.test_data_path)
-        if not platform_is_windows():
-            self.deco_config._config["font_name"] = "Ubuntu-B.ttf"
         composer.create_compositions(output_path=self.temp_path)

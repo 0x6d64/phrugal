@@ -1,11 +1,10 @@
 import logging
 from fractions import Fraction
-from typing import Optional
 
 import PIL.Image as PilImage
 from PIL.ImageColor import getrgb
 from PIL.ImageDraw import Draw
-from PIL.ImageFont import truetype, FreeTypeFont
+from PIL.ImageFont import truetype, FreeTypeFont, load_default
 
 from .decoration_config import DecorationConfig
 from .exif import PhrugalExifData
@@ -193,7 +192,11 @@ class DecoratedPhrugalImage:
         if (font_name, font_size) in self.FONT_CACHE:
             font = self.FONT_CACHE[(font_name, int(font_size))]
         else:
-            font = truetype(font_name, size=font_size)
+            try:
+                font = truetype(font_name, size=font_size)
+            except OSError:
+                logger.warning(f"unable to open {font_name}, fallback to default!")
+                font = load_default(font_size)
             self.FONT_CACHE[(font_name, int(font_size))] = font
         return font
 
