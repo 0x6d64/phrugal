@@ -25,7 +25,10 @@ class DecorationConfig:
         },
         "top_right": {
             "timestamp": {"format": "%Y-%m-%dT%H:%M"},
-            "geocode": {"zoom": 12},
+            "geocode": {
+                "zoom": 12,
+                "name_parts": ["road", "city", "county", "state", "country"],
+            },
         },
     }
 

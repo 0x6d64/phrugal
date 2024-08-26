@@ -23,6 +23,21 @@ class Geocoder:
     ERROR_WAIT_SECONDS = 7
     MAX_RETRIES = 5
     DEFAULT_ZOOM = 12
+    DEFAULT_LOCATION_NAME_PARTS = ["road", "city", "county", "state", "country"]
+    ALLOWED_LOCATION_NAME_PARTS = [
+        "historic",
+        "house_number",
+        "road",
+        "neighbourhood",
+        "suburb",
+        "city",
+        "state",
+        "county",
+        "ISO3166-2-lvl4",
+        "postcode",
+        "country",
+        "country_code",
+    ]
 
     def __init__(self):
         if self.GEOCODER is None:
@@ -34,9 +49,12 @@ class Geocoder:
                 error_wait_seconds=self.ERROR_WAIT_SECONDS,
             )
 
-    @cache
     def get_location_name(
-            self, lat: float, lon: float, zoom: int = DEFAULT_ZOOM
+        self,
+        lat: float,
+        lon: float,
+        zoom: int = DEFAULT_ZOOM,
+        name_parts: list[str] = DEFAULT_LOCATION_NAME_PARTS,  # noqa
     ) -> str:
         """Returns a name for given coordinates
 
@@ -50,32 +68,33 @@ class Geocoder:
         :return: formatted location name
         """
         loc = Point(lat, lon)
-        return self.get_location_name_from_point(loc, zoom=zoom)
+        return self.get_location_name_from_point(loc, zoom=zoom, name_parts=name_parts)
 
-    def get_location_name_from_point(self, loc: Point, zoom: int = DEFAULT_ZOOM) -> str:
-        answer = self._reverse_rate_limited(loc, exactly_one=True, zoom=zoom)
+    def get_location_name_from_point(
+        self,
+        loc: Point,
+        zoom: int = DEFAULT_ZOOM,
+        name_parts: list[str] = DEFAULT_LOCATION_NAME_PARTS,  # noqa
+    ) -> str:
+        for p in name_parts:
+            if p not in self.ALLOWED_LOCATION_NAME_PARTS:
+                raise RuntimeError(f"configured location name part {p} is not known!")
+        # call API endpoint, pass lat and lon since Point is not hashable
+        answer = self._call_reverse_api(lat=loc.latitude, lon=loc.longitude, zoom=zoom)
         self._CALLS_MADE += 1
         address_dict = answer.raw["address"]
-        name_parts = [
-            address_dict.get("road"),
-            address_dict.get("city"),
-            address_dict.get("county"),
-            address_dict.get("state"),
-            address_dict.get("country"),
-        ]
-        name_formatted = ", ".join(x for x in name_parts if x)
+        name_parts_from_server = [address_dict.get(x) for x in name_parts]
+        name_formatted = ", ".join(x for x in name_parts_from_server if x)
+
         return name_formatted
 
-sample_adress = {
-    'historic': 'Muzeul Emil Sigerus - Casa Artelor - Hala Măcelarilor',
-     'house_number': '21',
-     'road': 'Piața Mică',
-     'neighbourhood': 'Orașul de Sus',
-     'suburb': 'Centrul Istoric',
-     'city': 'Sibiu',
-     'county': 'Sibiu',
-     'ISO3166-2-lvl4': 'RO-SB',
-     'postcode': '550000',
-     'country': 'România',
-     'country_code': 'ro'
- }
+    @cache
+    def _call_reverse_api(self, lat, lon, zoom: int):
+        """Call the reverse api end point.
+
+        We isolate this into its own method to make it cacheable. We pass lat and lon instead of Point
+        since Point instances are not hashable.
+        """
+        loc = Point(lat, lon)
+        answer = self._reverse_rate_limited(loc, exactly_one=True, zoom=zoom)
+        return answer
