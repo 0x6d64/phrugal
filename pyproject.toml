@@ -31,7 +31,9 @@ dependencies = [
 dev = [
     "black",
     "flake8",
-    "coverage"
+    "coverage",
+    "sphinx",
+    "sphinx_rtd_theme"
 ]
 
 [tool.versioneer]
