@@ -1,2 +1,15 @@
 name,description,parameters
 focal_length,Focal length from EXIF data	,None
+aperture,Aperture from EXIF data,None
+shutter_speed,Shutter speed from EXIF data,"**use_nominal_value**: bool, default: True. If True, replace the exact (true) value from the EXIF data with the nominal value the user selected on their camera. *Example*: a camera set to 1/60s (nominal value) will internally expose for 1/64s."
+iso,ISO value from EXIF data,None
+title,Image ApplicationNotes from XMP EXIF data. *this is not yet implemented*,None
+description	,EXIF tag *Image ImageDescription*,None
+image_xp_title	,EXIF tag *Image XPTitle*,None
+image_xp_description,EXIF tag *Image XPSubject*,None
+image_xp_subject,alias for *image_xp_description*,None
+timestamp,timestamp from EXIF data,"**format**: format string, default: %Y:%m:%d %H:%M"
+gps_coordinates,GPS coordinates from EXIF data,"**include_altitude**: bool, default: True. **use_dms**: bool, default: True. DMS gives coordinates in degree, minutes, seconds. DDS gives the coordinates as degrees with decimals."
+geocode,"Name of the GPS locations, as resolved by Nominatim.","**zoom**: integer, default: 12. Higher zoom gives a more precise location (if available), e.g. street names."
+camera_model,Camera model from EXIF data,None
+lens_model,Lens model from EXIF data,None

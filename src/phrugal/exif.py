@@ -144,6 +144,9 @@ class PhrugalExifData:
         raw = self.exif_data.get("Image XPSubject", None)  # type: Optional[IfdTag]
         return self._get_str_from_utf16(raw.values) if raw else None
 
+    def get_image_xp_subject(self) -> str:
+        return self.get_image_xp_description()
+
     def get_timestamp(self, format: str = "%Y:%m:%d %H:%M") -> str:
         ts_raw = self._get_timestamp_raw()
         return ts_raw.strftime(format) if ts_raw else None
