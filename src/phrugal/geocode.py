@@ -36,7 +36,7 @@ class Geocoder:
 
     @cache
     def get_location_name(
-        self, lat: float, lon: float, zoom: int = DEFAULT_ZOOM
+            self, lat: float, lon: float, zoom: int = DEFAULT_ZOOM
     ) -> str:
         """Returns a name for given coordinates
 
@@ -65,3 +65,17 @@ class Geocoder:
         ]
         name_formatted = ", ".join(x for x in name_parts if x)
         return name_formatted
+
+sample_adress = {
+    'historic': 'Muzeul Emil Sigerus - Casa Artelor - Hala Măcelarilor',
+     'house_number': '21',
+     'road': 'Piața Mică',
+     'neighbourhood': 'Orașul de Sus',
+     'suburb': 'Centrul Istoric',
+     'city': 'Sibiu',
+     'county': 'Sibiu',
+     'ISO3166-2-lvl4': 'RO-SB',
+     'postcode': '550000',
+     'country': 'România',
+     'country_code': 'ro'
+ }
