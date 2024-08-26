@@ -5,7 +5,6 @@ requires = [
     "versioneer[toml]==0.29",
     "wheel",
     "sphinx",
-    "sphinx_rtd_theme"
 ]
 build-backend = "setuptools.build_meta"
 
@@ -33,7 +32,6 @@ dev = [
     "flake8",
     "coverage",
     "sphinx",
-    "sphinx_rtd_theme"
 ]
 
 [tool.versioneer]
