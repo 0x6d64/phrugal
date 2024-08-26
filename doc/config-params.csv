@@ -10,6 +10,6 @@ image_xp_description,EXIF tag *Image XPSubject*,None
 image_xp_subject,alias for *image_xp_description*,None
 timestamp,timestamp from EXIF data,"**format**: format string, default: %Y:%m:%d %H:%M"
 gps_coordinates,GPS coordinates from EXIF data,"**include_altitude**: bool, default: True. **use_dms**: bool, default: True. DMS gives coordinates in degree, minutes, seconds. DDS gives the coordinates as degrees with decimals."
-geocode,"Name of the GPS locations, as resolved by Nominatim.","**zoom**: integer, default: 12. Higher zoom gives a more precise location (if available), e.g. street names."
+geocode,"Name of the GPS locations, as resolved by Nominatim.","**zoom**: integer, default: 12. Higher zoom gives a more precise location (if available), e.g. street names. **name_parts**: list of strings, see note below"
 camera_model,Camera model from EXIF data,None
 lens_model,Lens model from EXIF data,None

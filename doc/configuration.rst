@@ -41,8 +41,11 @@ Nominatim uses the following levels (`source <https://nominatim.org/release-docs
   18     building
  ====== =========================
 
-In phrugal, we simplify the output and *do not** output all of the listed elements.
-Phrugal limits the output to the following parts:
+In phrugal, the geocode item accepts a parameter called "name_parts" that defines what parts
+of the returned address data shall be included. Note that parts that don't contain any data
+will be omitted.
+
+The default list is this:
 
 * country
 * state
@@ -59,11 +62,25 @@ cause, but I decided for now to just omit the values that don't make sense.
 Printing all the values is not desirable anyway, since this would make the string too long
 to be usable.
 
-As a potential improvement, future versions could make the list above configurable so that
-the user can define what parts of an address shall be included in the output.
+If the user desires, they can include the following parts:
+
+* historic
+* house_number
+* road
+* neighbourhood
+* suburb
+* city
+* state
+* county
+* ISO3166-2-lvl4
+* postcode
+* country
+* country_code
 
 Geocoding speed
 """""""""""""""
 Nominatim rate limits queries to 1 query per second. Phrugal implements a delay
 that honors this requirement, so using geocoding is slow but should usually
-work without any error.
+work without any error. Phrugal uses very basis caching, so that lookups for *exactly
+the same location* will be served from the cache. Images close to each other will
+each require their own request to the server.
