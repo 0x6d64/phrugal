@@ -173,12 +173,12 @@ class PhrugalExifData:
             return None
         return gps_formatted
 
-    def get_geocode(self, zoom=12):
+    def get_geocode(self, zoom=12, name_parts=Geocoder.DEFAULT_LOCATION_NAME_PARTS):
         gps_coordinates_formatted = self.get_gps_coordinates(include_altitude=False)
         if gps_coordinates_formatted:
             location = Point(gps_coordinates_formatted)  # type: ignore
             location_geocoded = self.geocoder.get_location_name_from_point(
-                location, zoom=zoom
+                location, zoom=zoom, name_parts=name_parts
             )
         else:
             location_geocoded = None

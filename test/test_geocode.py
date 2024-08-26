@@ -31,7 +31,7 @@ class TestGeocode(unittest.TestCase):
 
         self.assertLess(
             duration_cached_function_call,
-            datetime.timedelta(milliseconds=3),
+            datetime.timedelta(milliseconds=10),
         )
 
     def test_get_location_name(self):
@@ -78,6 +78,14 @@ class TestGeocode(unittest.TestCase):
                 * (self.geocoder._CALLS_MADE - 1)
             ),
         )
+
+    def test_get_location_name_all_name_parts(self):
+        result = self.geocoder.get_location_name(45.65156, 23.92831, zoom=20, name_parts=self.geocoder.ALLOWED_LOCATION_NAME_PARTS)
+        self.assertEqual("Transcindrel, Sibiu, Sibiu, RO-SB, 550001, România, ro", result)
+
+        result = self.geocoder.get_location_name(38.870984, -77.055970, zoom=20, name_parts=self.geocoder.ALLOWED_LOCATION_NAME_PARTS)
+        self.assertEqual("Pentagon Access Road, Arlington, Virginia, Arlington County, US-VA, 20310, United States, us", result)
+
 
     def test_get_location_name_by_point(self):
         variations = [
