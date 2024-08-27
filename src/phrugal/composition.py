@@ -1,3 +1,4 @@
+import logging
 import random
 from dataclasses import dataclass
 from fractions import Fraction
@@ -7,13 +8,10 @@ from typing import Iterable, List
 import PIL.Image as pill_image
 from PIL.Image import Image, Resampling
 from PIL.ImageDraw import Draw
-
 from phrugal.decorated_image import DecoratedPhrugalImage
 from phrugal.decoration_config import DecorationConfig
 from phrugal.image import PhrugalImage
 from phrugal.types import Coordinates
-
-import logging
 
 logger = logging.getLogger(__name__)
 

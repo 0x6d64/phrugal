@@ -1,11 +1,10 @@
 import logging
 from functools import cache
 
+import phrugal
 from geopy import Point
 from geopy.extra.rate_limiter import RateLimiter
 from geopy.geocoders import Nominatim
-
-import phrugal
 
 logger = logging.getLogger(__name__)
 

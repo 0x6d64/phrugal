@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import List, Tuple
 
 import PIL.Image
-
 from phrugal.composition import ImageComposition
 from phrugal.decoration_config import DecorationConfig
 from phrugal.image import PhrugalImage, PhrugalPlaceholder
