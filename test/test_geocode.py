@@ -2,9 +2,8 @@ import datetime
 import time
 import unittest
 
-from geopy import Point
-
 import phrugal.geocode
+from geopy import Point
 
 
 class TestGeocode(unittest.TestCase):
