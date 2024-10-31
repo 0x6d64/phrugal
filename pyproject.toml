@@ -32,6 +32,7 @@ dev = [
     "flake8",
     "coverage",
     "sphinx",
+    "sphinx-rtd-theme",
 ]
 
 [tool.versioneer]
