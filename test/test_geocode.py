@@ -66,8 +66,8 @@ class TestGeocode(unittest.TestCase):
         result = self.geocoder.get_location_name(45.65156, 23.92831, zoom=18)
         self.assertEqual("Transcindrel, Sibiu, Sibiu, România", result)
 
-        result = self.geocoder.get_location_name(49.80264, 9.95056, zoom=16)
-        self.assertEqual("Robert-Koch-Straße, Würzburg, Bayern, Deutschland", result)
+        result = self.geocoder.get_location_name(49.80264, 9.95056, zoom=18)
+        self.assertEqual("Robert-Koch-Straße, Würzburg, Würzburg, Bayern, Deutschland", result)
 
         duration = datetime.datetime.now() - start
         self.assertGreater(  # we want to have at least
@@ -94,6 +94,6 @@ class TestGeocode(unittest.TestCase):
                 p = Point(coordinate_format)  # type: ignore
                 result = self.geocoder.get_location_name_from_point(p, zoom=12)
                 self.assertEqual(
-                    "Cape Agulhas Local Municipality, Overberg District Municipality, South Africa",
+                    "Cape Agulhas Local Municipality, Overberg District Municipality, Western Cape, South Africa",
                     result,
                 )
