@@ -16,9 +16,9 @@ readme = { file = 'README.md', content-type = 'text/markdown' }
 dynamic = ["version"]
 classifiers = [
     "Programming Language :: Python :: 3.7",
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Operating System :: OS Independent",
 ]
+license = "GPL-3.0-only"
 requires-python = ">= 3.7"  # one reason is guaranteed behavior of odering in dict
 dependencies = [
     "Pillow>=8.0.0",
