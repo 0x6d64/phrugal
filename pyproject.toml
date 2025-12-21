@@ -18,7 +18,7 @@ classifiers = [
     "Programming Language :: Python :: 3.7",
     "Operating System :: OS Independent",
 ]
-license = "GPL-3.0-only"
+license = {file = "LICENSE"}
 requires-python = ">= 3.7"  # one reason is guaranteed behavior of odering in dict
 dependencies = [
     "Pillow>=8.0.0",
